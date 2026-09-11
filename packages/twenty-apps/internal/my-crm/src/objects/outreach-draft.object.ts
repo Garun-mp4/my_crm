@@ -184,6 +184,7 @@ export default defineObject({
       label: 'Idempotency key',
       icon: 'IconFingerprint',
       isNullable: true,
+      isUnique: true,
     },
     {
       universalIdentifier: '5bc6f037-1748-4956-8234-223344556677',

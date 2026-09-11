@@ -29,4 +29,4 @@ createdb my_crm_restore_check
 pg_restore --clean --if-exists --dbname="$RESTORE_DATABASE_URL" my-crm.backup
 ```
 
-After restore, run migrations in dry-run/rehearsal mode where supported, verify the Lead/Research/Outreach/Activity/Import Batch objects, and execute the end-to-end scenario from `docs/IMPLEMENTATION_BLUEPRINT.md`. Store the dump outside Git and delete test credentials after the rehearsal.
+After restore, run migrations in dry-run/rehearsal mode where supported, verify the Lead/Research/Research Job/Outreach/Activity/Import Batch objects, and execute the end-to-end scenario from `docs/IMPLEMENTATION_BLUEPRINT.md`. Store the dump outside Git and delete test credentials after the rehearsal.

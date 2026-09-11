@@ -5,6 +5,7 @@ import { LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/lead-i
 import { LEAD_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/lead.object';
 import { OUTREACH_DRAFT_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/outreach-draft.object';
 import { RESEARCH_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/research.object';
+import { RESEARCH_JOB_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/research-job.object';
 
 export const RESEARCHER_ROLE_UNIVERSAL_IDENTIFIER =
   '9fa0341b-b526-4734-8901-778899001123';
@@ -49,6 +50,10 @@ export default defineRole({
     },
     {
       objectUniversalIdentifier: LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER,
+      ...readWrite,
+    },
+    {
+      objectUniversalIdentifier: RESEARCH_JOB_OBJECT_UNIVERSAL_IDENTIFIER,
       ...readWrite,
     },
   ],

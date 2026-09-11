@@ -150,7 +150,7 @@ const styles: Record<string, CSSProperties> = {
     maxWidth: 1180,
     margin: '0 auto',
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
     gap: 12,
   },
   card: {
@@ -177,6 +177,7 @@ const styles: Record<string, CSSProperties> = {
     justifyContent: 'space-between',
     gap: 20,
     alignItems: 'baseline',
+    flexWrap: 'wrap',
     padding: '18px 20px',
     borderBottom: `1px solid ${colors.line}`,
   },
@@ -190,7 +191,8 @@ const styles: Record<string, CSSProperties> = {
   list: { display: 'grid' },
   row: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) 150px 120px',
+    gridTemplateColumns:
+      'minmax(0, 1fr) minmax(90px, 150px) minmax(80px, 120px)',
     gap: 16,
     alignItems: 'center',
     minHeight: 62,

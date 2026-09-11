@@ -12,6 +12,24 @@ export const LEAD_RESEARCHES_FIELD_ID = 'a0b1452c-c637-4845-9012-889900112233';
 export const LEAD_OUTREACH_DRAFTS_FIELD_ID =
   'c2d3674e-e859-4067-b234-001122334455';
 export const LEAD_ACTIVITIES_FIELD_ID = 'e4f58960-a071-4289-a456-223344556677';
+export const LEAD_RESEARCH_JOBS_FIELD_ID =
+  'd6e7f809-1a2b-4c56-8d70-445566778899';
+export const LEAD_CONTACT_NAME_FIELD_ID =
+  'e7f8091a-2b3c-4345-b678-990011223344';
+export const LEAD_PHONE_FIELD_ID = 'f8091a2b-3c4d-4456-8790-001122334455';
+export const LEAD_EMAIL_FIELD_ID = '091a2b3c-4d5e-4567-8890-112233445566';
+export const LEAD_TELEGRAM_FIELD_ID = '1a2b3c4d-5e6f-4678-9901-223344556677';
+export const LEAD_WHATSAPP_FIELD_ID = '2b3c4d5e-6f70-4789-a012-334455667788';
+export const LEAD_VK_FIELD_ID = '3c4d5e6f-7081-4890-b123-445566778899';
+
+export const LEAD_SENSITIVE_CONTACT_FIELD_IDS = [
+  LEAD_CONTACT_NAME_FIELD_ID,
+  LEAD_PHONE_FIELD_ID,
+  LEAD_EMAIL_FIELD_ID,
+  LEAD_TELEGRAM_FIELD_ID,
+  LEAD_WHATSAPP_FIELD_ID,
+  LEAD_VK_FIELD_ID,
+] as const;
 
 export const LeadStatus = {
   NEW: 'NEW',
@@ -415,6 +433,7 @@ export default defineObject({
       label: 'Dedupe key',
       icon: 'IconFingerprint',
       isNullable: true,
+      isUnique: true,
     },
     {
       universalIdentifier: 'c5d6e7f8-091a-4789-b123-334455667788',

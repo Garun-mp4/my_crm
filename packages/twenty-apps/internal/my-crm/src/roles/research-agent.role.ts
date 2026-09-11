@@ -2,9 +2,13 @@ import { defineRole } from 'twenty-sdk/define';
 
 import { CRM_ACTIVITY_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/crm-activity.object';
 import { LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/lead-import-batch.object';
-import { LEAD_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/lead.object';
+import {
+  LEAD_OBJECT_UNIVERSAL_IDENTIFIER,
+  LEAD_SENSITIVE_CONTACT_FIELD_IDS,
+} from '../objects/lead.object';
 import { OUTREACH_DRAFT_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/outreach-draft.object';
 import { RESEARCH_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/research.object';
+import { RESEARCH_JOB_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/research-job.object';
 
 export const RESEARCH_AGENT_ROLE_UNIVERSAL_IDENTIFIER =
   'a0b1452c-c637-4845-9012-889900112234';
@@ -30,6 +34,14 @@ export default defineRole({
   canBeAssignedToUsers: false,
   canBeAssignedToAgents: true,
   canBeAssignedToApiKeys: true,
+  fieldPermissions: LEAD_SENSITIVE_CONTACT_FIELD_IDS.map(
+    (fieldUniversalIdentifier) => ({
+      objectUniversalIdentifier: LEAD_OBJECT_UNIVERSAL_IDENTIFIER,
+      fieldUniversalIdentifier,
+      canReadFieldValue: false,
+      canUpdateFieldValue: false,
+    }),
+  ),
   objectPermissions: [
     {
       objectUniversalIdentifier: LEAD_OBJECT_UNIVERSAL_IDENTIFIER,
@@ -49,6 +61,10 @@ export default defineRole({
     },
     {
       objectUniversalIdentifier: LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER,
+      ...agentRecordPermissions,
+    },
+    {
+      objectUniversalIdentifier: RESEARCH_JOB_OBJECT_UNIVERSAL_IDENTIFIER,
       ...agentRecordPermissions,
     },
   ],

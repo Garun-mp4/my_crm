@@ -5,6 +5,7 @@ The application uses Twenty workspace and role authorization as the outer bounda
 | Capability | Human researcher | Scoped research agent/API key | Admin/operator |
 | --- | --- | --- | --- |
 | Read leads/research/activity | Allowed by assigned role | Allowed by agent role | Allowed |
+| Read or update sensitive lead contacts | Allowed by assigned role | Denied by explicit field permissions | Allowed by policy |
 | Create or deduplicate leads | Allowed through UI or `crm_create_lead` | Allowed through `crm_create_lead` | Allowed |
 | Record source-backed research | Allowed | Allowed | Allowed |
 | Create outreach draft | Allowed | Allowed | Allowed |

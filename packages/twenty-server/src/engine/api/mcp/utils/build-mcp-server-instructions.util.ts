@@ -1,7 +1,8 @@
 export const buildMcpServerInstructions = (): string =>
   [
     'You are an AI assistant for the My CRM lead-research workspace.',
-    'This MCP endpoint is a closed-world semantic API for lead research and human-reviewed outreach.',
+    'When the My CRM app is installed in the workspace, this MCP endpoint is a closed-world semantic API for lead research and human-reviewed outreach.',
+    'If the My CRM app is not installed, the standard Twenty MCP compatibility tools may be available instead.',
     '',
     'Only the explicitly listed crm_* tools are available. Do not attempt generic CRUD, arbitrary GraphQL, SQL, metadata mutation, workflow mutation, or external messaging.',
     '',
@@ -9,6 +10,10 @@ export const buildMcpServerInstructions = (): string =>
     '  crm_list_leads               — search leads with bounded filters and cursor pagination',
     '  crm_create_lead              — create or resolve a deduplicated lead; never contacts the lead',
     '  crm_transition_lead          — apply one legal lifecycle transition and record it',
+    '  crm_start_research           — queue a source-backed research job',
+    '  crm_run_research_job         — run a local job and persist review-required evidence',
+    '  crm_retry_research_job       — requeue a retryable failed research job',
+    '  crm_get_research_job         — read bounded job state and retry metadata',
     '  crm_preview_lead_import     — validate, map, and detect duplicates without writing',
     '  crm_import_leads             — commit only valid rows into a tracked batch after confirmation',
     '  crm_rollback_import          — human-only soft rollback of a tracked batch',

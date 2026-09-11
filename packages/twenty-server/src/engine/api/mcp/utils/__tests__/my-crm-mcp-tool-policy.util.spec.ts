@@ -1,14 +1,25 @@
 import {
+  MY_CRM_APPLICATION_UNIVERSAL_IDENTIFIER,
   isMyCrmMcpToolName,
   MY_CRM_MCP_TOOL_NAMES,
 } from 'src/engine/api/mcp/constants/my-crm-mcp-tool-names.const';
 
 describe('My CRM MCP tool policy', () => {
+  it('uses the installed app identity as the strict-mode switch', () => {
+    expect(MY_CRM_APPLICATION_UNIVERSAL_IDENTIFIER).toBe(
+      '5c2d8b32-99bf-4af7-9e0d-2f7cb1d0f7f1',
+    );
+  });
+
   it('keeps the public surface limited to semantic CRM tools', () => {
     expect(MY_CRM_MCP_TOOL_NAMES).toEqual([
       'crm_list_leads',
       'crm_create_lead',
       'crm_transition_lead',
+      'crm_start_research',
+      'crm_run_research_job',
+      'crm_retry_research_job',
+      'crm_get_research_job',
       'crm_preview_lead_import',
       'crm_import_leads',
       'crm_rollback_import',
@@ -23,6 +34,10 @@ describe('My CRM MCP tool policy', () => {
     'crm_list_leads',
     'crm_create_lead',
     'crm_transition_lead',
+    'crm_start_research',
+    'crm_run_research_job',
+    'crm_retry_research_job',
+    'crm_get_research_job',
     'crm_preview_lead_import',
     'crm_import_leads',
     'crm_rollback_import',

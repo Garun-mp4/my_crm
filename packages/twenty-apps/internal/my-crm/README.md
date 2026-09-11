@@ -6,9 +6,10 @@ The app models the working flow around a potential client:
 
 1. capture a deduplicated lead;
 2. attach research facts with source URLs, timestamps, confidence, and provenance;
-3. prepare an outreach draft;
-4. require a human approval before any future delivery integration;
-5. record the resulting activity without sending messages automatically.
+3. run a bounded research job through a replaceable local/provider adapter, with retryable failures visible to a human;
+4. prepare an outreach draft;
+5. require a human approval before any future delivery integration;
+6. record the resulting activity without sending messages automatically.
 
 ## Local checks
 

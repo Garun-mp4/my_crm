@@ -6,8 +6,12 @@ export type ToolFailure = {
     | 'NOT_FOUND'
     | 'AUTHENTICATED_MEMBER_REQUIRED'
     | 'INVALID_STATE'
+    | 'RESEARCH_FAILED'
     | 'CRM_OPERATION_FAILED';
   message: string;
+  retryable?: boolean;
+  correlationId?: string;
+  details?: Record<string, unknown>;
 };
 
 export type ToolSuccess<T> = { ok: true } & T;
@@ -30,6 +34,25 @@ export const invalidState = (message: string): ToolFailure => ({
   ok: false,
   code: 'INVALID_STATE',
   message,
+});
+
+export const researchFailed = ({
+  message,
+  retryable,
+  correlationId,
+  details,
+}: {
+  message: string;
+  retryable: boolean;
+  correlationId: string;
+  details?: Record<string, unknown>;
+}): ToolFailure => ({
+  ok: false,
+  code: 'RESEARCH_FAILED',
+  message,
+  retryable,
+  correlationId,
+  details,
 });
 
 export const operationFailure = (error: unknown): ToolFailure => {

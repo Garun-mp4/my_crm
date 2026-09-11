@@ -231,6 +231,7 @@ export default defineObject({
       label: 'Extraction run',
       icon: 'IconActivity',
       isNullable: true,
+      isUnique: true,
     },
   ],
 });

@@ -77,6 +77,30 @@ export const recordResearchSchema = z.object({
   idempotencyKey: z.string().trim().min(1).optional(),
 });
 
+export const startResearchSchema = z.object({
+  leadId: z.string().uuid(),
+  sourceUrl: z.string().url(),
+  sourceTitle: z.string().trim().max(200).optional(),
+  observation: z.string().trim().max(20_000).optional(),
+  provider: z.literal('LOCAL_FIXTURE').default('LOCAL_FIXTURE'),
+  failureMode: z.enum(['NONE', 'TRANSIENT', 'PERMANENT']).default('NONE'),
+  maxAttempts: z.number().int().min(1).max(5).default(3),
+  idempotencyKey: z.string().trim().min(1).max(200),
+});
+
+export const runResearchJobSchema = z.object({
+  jobId: z.string().uuid(),
+});
+
+export const retryResearchJobSchema = z.object({
+  jobId: z.string().uuid(),
+  idempotencyKey: z.string().trim().min(1).max(200).optional(),
+});
+
+export const getResearchJobSchema = z.object({
+  jobId: z.string().uuid(),
+});
+
 export const createOutreachDraftSchema = z.object({
   leadId: z.string().uuid(),
   channel: z.enum(['EMAIL', 'TELEGRAM', 'WHATSAPP', 'VK', 'OTHER']),
@@ -116,6 +140,10 @@ export type RollbackLeadImportPayload = z.infer<
   typeof rollbackLeadImportSchema
 >;
 export type RecordResearchPayload = z.infer<typeof recordResearchSchema>;
+export type StartResearchPayload = z.infer<typeof startResearchSchema>;
+export type RunResearchJobPayload = z.infer<typeof runResearchJobSchema>;
+export type RetryResearchJobPayload = z.infer<typeof retryResearchJobSchema>;
+export type GetResearchJobPayload = z.infer<typeof getResearchJobSchema>;
 export type CreateOutreachDraftPayload = z.infer<
   typeof createOutreachDraftSchema
 >;

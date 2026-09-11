@@ -8,6 +8,7 @@ This document records the first implementation contract for the internal CRM app
 | --- | --- | --- |
 | Lead | The potential client and current sales state | A deterministic `dedupeKey` prevents repeated imports; lifecycle changes are checked by the semantic domain functions. |
 | Research | A source-backed fact or observation about a lead | Every record carries a source URL, observed time, confidence, provenance, and an evidence hash. |
+| Research job | A bounded local/provider execution attempt | Jobs are queued, retryable only when the adapter marks the failure retryable, and never promote AI output beyond review-required evidence. |
 | Outreach draft | A proposed first message or follow-up | Drafts start as `NEEDS_REVIEW`; approval is a separate action and does not send a message. |
 | CRM activity | Append-only operational history | Activity records preserve actor role, actor identity, source, timestamp, and idempotency key where available. |
 
@@ -20,6 +21,10 @@ The public automation boundary is the following explicit tool set:
 - `crm_create_lead`
 - `crm_list_leads`
 - `crm_transition_lead`
+- `crm_start_research`
+- `crm_run_research_job`
+- `crm_retry_research_job`
+- `crm_get_research_job`
 - `crm_preview_lead_import`
 - `crm_import_leads`
 - `crm_rollback_import`
@@ -29,6 +34,8 @@ The public automation boundary is the following explicit tool set:
 - `crm_log_activity`
 
 These tools are intentionally domain-shaped. The product must not add a generic `execute_sql`, arbitrary GraphQL, unrestricted object CRUD, or a tool that sends external messages without a separate human-approved delivery workflow.
+
+At the root MCP transport Twenty registers app logic functions as internal `app_*` tool names. The CRM adapter maps those names back to this public `crm_*` contract and filters every other tool out when the app is installed. The standard Twenty generic MCP compatibility surface is retained only for workspaces where this CRM app is not installed.
 
 ## Identity and provenance
 
@@ -45,6 +52,8 @@ The core list experience is provided by Twenty's server-backed object views. The
 ## Import and export
 
 CSV preview is pure validation plus a bounded workspace duplicate lookup. Commit requires an explicit confirmation flag, records a `Lead import batch`, writes only accepted non-duplicate rows, and stores created lead IDs and row-level errors. A human workspace member can soft-roll back a committed or partial batch by its batch ID. Export uses a stable column order and RFC-style escaping for commas, quotes, and line breaks.
+
+Research execution uses a replaceable adapter boundary. The checked-in `LOCAL_FIXTURE` adapter is deterministic and does not fetch or scrape external sites; it accepts a supplied observation, stores it as `AI_DRAFT`, and leaves the evidence in `REVIEW_REQUIRED`. A transient adapter failure moves the job to `FAILED` with a bounded exponential retry time. A worker or MCP caller must explicitly run or retry a job.
 
 ## Change rules
 
