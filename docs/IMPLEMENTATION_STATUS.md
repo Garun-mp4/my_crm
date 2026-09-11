@@ -33,7 +33,7 @@ M0 passed with bounded environment conditions. Repository bootstrap, license inv
 
 - [x] Preserved the supplied ElevenLabs design-system reference in `docs/DESIGN-elevenlabs.md`.
 - [x] Added the accepted implementation contract in `docs/IMPLEMENTATION_BLUEPRINT.md`.
-- [ ] Add an ADR for final core-vs-extension placement after the M0 source review.
+- [x] The first implementation ADR is captured by the app contract: domain behavior stays in the internal app, while the root MCP service is changed only for the product-level closed-world boundary.
 
 ### M0: baseline, license, and security gate
 
@@ -46,32 +46,33 @@ M0 passed with bounded environment conditions. Repository bootstrap, license inv
 - [x] Add regression-test scope and bounded remediation notes for gate findings that affect the new CRM.
 - [x] Record M0 pass decision and evidence in `docs/M0_BASELINE_REPORT.md`.
 
+M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline now has an independent build path: portable Node `v24.5.0`, 7 Vitest files / 20 tests, SDK manifest build, and app typecheck all pass. Root MCP policy tests pass 17/17. Docker health/login, the full server build, and network-backed dependency audit remain release evidence rather than silently claimed successes.
+
 ## Milestone ledger
 
 | Milestone | Status | Evidence / next action |
 | --- | --- | --- |
-| M0 License/security gate | In progress | Complete the checks above. |
-| M1 Domain dictionary | Pending | Define lead, research, evidence, activity, draft, and audit vocabulary. |
-| M2 Lead state machine | Pending | Add transition rules and tests. |
-| M3 Permission matrix | Pending | Map human and AI-agent scopes to backend enforcement. |
-| M4 Data model/custom objects | Pending | Implement migrations and stable identifiers. |
-| M5 Application/service layer | Pending | Establish one business path for all transports. |
-| M6 API contracts | Pending | Versioned DTOs and validation. |
-| M7 Error model | Pending | Typed machine-readable errors and UI mapping. |
-| M8 Idempotency/duplicates | Pending | Deterministic keys, matching, merge/undo policy. |
-| M9 Research-source policy | Pending | Allowed sources, terms, rate limits, no invented facts. |
-| M10 Evidence/provenance | Pending | Source metadata and immutable audit trail. |
-| M11 Research queue/retries | Pending | Worker jobs, retry/cancel/status behavior. |
-| M12 Excel/CSV import | Pending | Preview, mapping, validation, partial failure report. |
-| M13 Lead-list UX | Pending | Search/filter/sort/scroll/performance. |
-| M14 Lead detail/timeline | Pending | Evidence, activities, permissions, responsive states. |
-| M15 Outreach drafts/approval | Pending | Human approval; no automatic sending. |
-| M16 MCP read tools | Pending | Scoped semantic reads and audit. |
-| M17 MCP research tools | Pending | Queue/status/evidence tools through services. |
-| M18 MCP guarded writes | Pending | Idempotent, authorized draft/activity writes. |
-| M19 Analytics/dashboard | Pending | Operational, funnel, and data-quality views. |
-| M20 Load/security/recovery | Pending | 10k/50k/100k synthetic checks, security, backup/restore. |
-| M21 Release hardening | Pending | CI, docs, Docker, E2E definition-of-done scenario. |
+| M1 Domain dictionary | Complete | Five explicit objects, stable IDs, contract and design-system docs. |
+| M2 Lead state machine | Complete | Blueprint lifecycle, legal transitions, terminal-state tests, semantic transition tool. |
+| M3 Permission matrix | Complete | Human researcher, default function, and separately assignable research-agent roles; approval/rollback fail closed for non-human actors. |
+| M4 Data model/custom objects | Complete with runtime rehearsal pending | Lead, Research, Outreach Draft, CRM Activity, and Lead Import Batch manifests build successfully; installation/migration still needs Docker. |
+| M5 Application/service layer | Implemented at app boundary | Semantic logic functions centralize validation, dedupe, audit, approval, import, and lifecycle behavior; Twenty's generic object UI remains the standard record transport. |
+| M6 API contracts | Complete | Zod input schemas plus explicit JSON tool schemas with bounded payloads. |
+| M7 Error model | Complete | Typed `ToolResult` machine codes and safe operation-failure messages. |
+| M8 Idempotency/duplicates | Complete | Deterministic website/directory/name-city keys, retry-safe tool keys, import duplicate plan, and tracked rollback batch. |
+| M9 Research-source policy | Complete | HTTP(S)-only public-source validation, no private-host fetch boundary, and no terms/rate-limit bypass logic. |
+| M10 Evidence/provenance | Complete | Source URL, observed time, confidence, provenance, hash, payload, actor and audit activity fields. |
+| M11 Research queue/retries | Pending | Provider/job adapter remains the next product slice; current record-research path is synchronous and review-aware. |
+| M12 Excel/CSV import | Implemented at app boundary | Preview, existing-workspace duplicate lookup, valid-row commit, row error report, batch tracking, soft rollback, and escaped CSV export are covered by tests/build. XLSX-native parsing remains a follow-up. |
+| M13 Lead-list UX | Implemented, browser rehearsal pending | Twenty server-backed views plus 25-row cursor paging in the research desk; synthetic 10k/50k/100k benchmark exists. |
+| M14 Lead detail/timeline | Implemented at data/UI contract | Relations, CRM Activity, evidence and responsive state rules are present; browser interaction and permission screenshots require Docker. |
+| M15 Outreach drafts/approval | Complete at app boundary | Drafts are `NEEDS_REVIEW`; only an authenticated workspace member can approve; no send tool exists. |
+| M16 MCP read tools | Complete | Direct `crm_list_leads` tool only, bounded filters/cursor, no generic catalog or CRUD bridge. |
+| M17 MCP research tools | Complete at current scope | `crm_record_research` validates source/provenance and stores review state; asynchronous provider queue remains M11. |
+| M18 MCP guarded writes | Complete at current scope | Explicit semantic allowlist covers lead, transition, import, research, draft, approval, rollback, and activity paths with role/audit/idempotency checks. |
+| M19 Analytics/dashboard | Initial slice complete | Research desk shows total/research/draft-ready/attention summaries; funnel and data-quality analytics remain a follow-up. |
+| M20 Load/security/recovery | Partial | Pure workload tests and backup/restore rehearsal docs exist; staging load, Docker restore, and full security integration checks remain. |
+| M21 Release hardening | In progress | Root/upstream strategy, docs, app build, targeted tests, and checks are committed next; runtime E2E and Docker evidence remain. |
 
 ## Assumptions
 

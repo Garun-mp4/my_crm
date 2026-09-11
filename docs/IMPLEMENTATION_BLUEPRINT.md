@@ -73,7 +73,7 @@ Authorization is enforced on the backend and checked again inside application se
 
 ### MCP contract
 
-Expose semantic tools such as `search_leads`, `get_lead`, `create_research_job`, `get_research_status`, `create_outreach_draft`, `approve_outreach_draft`, and `record_activity`, with explicit schemas and scopes. Do not expose arbitrary SQL, arbitrary GraphQL documents, unrestricted object CRUD, or a tool that silently sends external messages. Tool results are filtered by the caller's workspace and field permissions and include audit/correlation metadata where appropriate.
+Expose semantic tools such as `crm_list_leads`, `crm_create_lead`, `crm_transition_lead`, `crm_record_research`, `crm_preview_lead_import`, `crm_import_leads`, `crm_rollback_import`, `crm_create_outreach_draft`, `crm_approve_outreach_draft`, and `crm_log_activity`, with explicit schemas and scopes. The current implementation intentionally exposes this closed set directly and omits Twenty's generic MCP catalog/execute/learn bridge for the CRM endpoint. Do not expose arbitrary SQL, arbitrary GraphQL documents, unrestricted object CRUD, or a tool that silently sends external messages. Tool results are filtered by the caller's workspace and field permissions and include audit/correlation metadata where appropriate.
 
 ## Design-system contract
 

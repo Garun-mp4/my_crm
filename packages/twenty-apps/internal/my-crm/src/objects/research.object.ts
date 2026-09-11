@@ -1,0 +1,236 @@
+import { defineObject, FieldType } from 'twenty-sdk/define';
+
+export const RESEARCH_OBJECT_UNIVERSAL_IDENTIFIER =
+  '1f3c8d52-7a91-4e6b-9c24-5d0f2a8b6e17';
+export const RESEARCH_NAME_FIELD_ID = 'd7e8f901-2a3b-4c56-8d70-112233445566';
+export const RESEARCH_STATUS_FIELD_ID = 'e8f9012a-3b4c-4d67-9e81-223344556677';
+export const RESEARCH_LEAD_FIELD_ID = 'b1c2563d-d748-4956-a123-990011223344';
+
+const option = (
+  id: string,
+  value: string,
+  label: string,
+  position: number,
+  color: string,
+) => ({ id, value, label, position, color });
+
+export const ResearchStatus = {
+  CAPTURED: 'CAPTURED',
+  REVIEW_REQUIRED: 'REVIEW_REQUIRED',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED',
+} as const;
+
+export default defineObject({
+  universalIdentifier: RESEARCH_OBJECT_UNIVERSAL_IDENTIFIER,
+  nameSingular: 'research',
+  namePlural: 'researches',
+  labelSingular: 'Research item',
+  labelPlural: 'Research evidence',
+  description: 'A source-backed observation attached to a lead.',
+  icon: 'IconMicroscope',
+  isSearchable: true,
+  labelIdentifierFieldMetadataUniversalIdentifier: RESEARCH_NAME_FIELD_ID,
+  fields: [
+    {
+      universalIdentifier: RESEARCH_NAME_FIELD_ID,
+      type: FieldType.TEXT,
+      name: 'name',
+      label: 'Evidence title',
+      icon: 'IconFileDescription',
+      defaultValue: "''",
+    },
+    {
+      universalIdentifier: 'f9012a3b-4c5d-4e78-8f92-334455667788',
+      type: FieldType.SELECT,
+      name: 'kind',
+      label: 'Evidence kind',
+      icon: 'IconFileSearch',
+      isNullable: true,
+      options: [
+        option(
+          'a0123b4c-5d6e-4f89-9012-445566778899',
+          'DIRECTORY',
+          'Directory card',
+          0,
+          'yellow',
+        ),
+        option(
+          'b1234c5d-6e7f-4090-a123-556677889900',
+          'REVIEW',
+          'Customer review',
+          1,
+          'green',
+        ),
+        option(
+          'c2345d6e-7f80-4123-b234-667788990011',
+          'WEBSITE',
+          'Website observation',
+          2,
+          'blue',
+        ),
+        option(
+          'd3456e7f-8091-4234-8345-778899001122',
+          'SCREENSHOT',
+          'Screenshot',
+          3,
+          'purple',
+        ),
+        option(
+          'e4567f80-91a2-4345-8456-889900112233',
+          'SOURCE_CODE',
+          'Source code review',
+          4,
+          'orange',
+        ),
+        option(
+          'f5678091-a2b3-4456-9567-990011223344',
+          'OTHER',
+          'Other',
+          5,
+          'gray',
+        ),
+      ],
+    },
+    {
+      universalIdentifier: '0678091a-2b3c-4567-8789-001122334455',
+      type: FieldType.RICH_TEXT,
+      name: 'fact',
+      label: 'Observed fact',
+      icon: 'IconQuote',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: '17891a2b-3c4d-4678-9890-112233445566',
+      type: FieldType.LINKS,
+      name: 'sourceUrl',
+      label: 'Source URL',
+      icon: 'IconExternalLink',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: '289a2b3c-4d5e-4789-a012-223344556677',
+      type: FieldType.TEXT,
+      name: 'sourceTitle',
+      label: 'Source title',
+      icon: 'IconFileText',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: '39ab3c4d-5e6f-4890-b123-334455667788',
+      type: FieldType.DATE_TIME,
+      name: 'observedAt',
+      label: 'Observed at',
+      icon: 'IconClock',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: '4abc4d5e-6f70-4901-a234-445566778899',
+      type: FieldType.RATING,
+      name: 'confidence',
+      label: 'Confidence',
+      icon: 'IconShieldCheck',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: '5bcd5e6f-7081-4012-8456-556677889900',
+      type: FieldType.SELECT,
+      name: 'provenance',
+      label: 'Provenance',
+      icon: 'IconFingerprint',
+      isNullable: true,
+      options: [
+        option(
+          '6cde6f70-8192-4123-9567-667788990011',
+          'HUMAN',
+          'Human observation',
+          0,
+          'green',
+        ),
+        option(
+          '7def7081-92a3-4234-a678-778899001122',
+          'AI_DRAFT',
+          'AI draft',
+          1,
+          'purple',
+        ),
+        option(
+          '8ef08192-a3b4-4345-b789-889900112233',
+          'IMPORTED',
+          'Imported',
+          2,
+          'blue',
+        ),
+        option(
+          '9f012a3b-4c5d-4456-8980-990011223344',
+          'SYSTEM',
+          'System generated',
+          3,
+          'gray',
+        ),
+      ],
+    },
+    {
+      universalIdentifier: 'a0123b4c-5d6e-4567-9a01-001122334455',
+      type: FieldType.TEXT,
+      name: 'evidenceHash',
+      label: 'Evidence hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: 'b1234c5d-6e7f-4678-a012-112233445566',
+      type: FieldType.RAW_JSON,
+      name: 'payload',
+      label: 'Structured payload',
+      icon: 'IconBraces',
+      isNullable: true,
+    },
+    {
+      universalIdentifier: RESEARCH_STATUS_FIELD_ID,
+      type: FieldType.SELECT,
+      name: 'status',
+      label: 'Review status',
+      icon: 'IconChecklist',
+      defaultValue: `'${ResearchStatus.CAPTURED}'`,
+      options: [
+        option(
+          'c2345d6e-7f80-4789-b123-223344556677',
+          'CAPTURED',
+          'Captured',
+          0,
+          'gray',
+        ),
+        option(
+          'd3456e7f-8091-4890-a234-334455667788',
+          'REVIEW_REQUIRED',
+          'Review required',
+          1,
+          'orange',
+        ),
+        option(
+          'e4567f80-91a2-4901-9345-445566778899',
+          'VERIFIED',
+          'Verified',
+          2,
+          'green',
+        ),
+        option(
+          'f5678091-a2b3-4012-8456-556677889900',
+          'REJECTED',
+          'Rejected',
+          3,
+          'red',
+        ),
+      ],
+    },
+    {
+      universalIdentifier: '0678091a-2b3c-4123-9567-667788990011',
+      type: FieldType.TEXT,
+      name: 'extractionRunId',
+      label: 'Extraction run',
+      icon: 'IconActivity',
+      isNullable: true,
+    },
+  ],
+});
