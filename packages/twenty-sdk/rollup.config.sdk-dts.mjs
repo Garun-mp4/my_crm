@@ -1,4 +1,5 @@
 import dts from 'rollup-plugin-dts';
+import path from 'node:path';
 
 const external = (id) => {
   if (id === 'twenty-shared' || id.startsWith('twenty-shared/')) {
@@ -7,7 +8,7 @@ const external = (id) => {
   if (id.startsWith('@/')) {
     return false;
   }
-  return !id.startsWith('.') && !id.startsWith('/');
+  return !id.startsWith('.') && !path.isAbsolute(id);
 };
 
 const plugins = [
