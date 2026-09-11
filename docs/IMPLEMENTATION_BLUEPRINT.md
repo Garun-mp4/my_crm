@@ -65,6 +65,7 @@ The preferred extension boundary is a versioned internal application module insi
 - An application service owns each business operation: create/update lead, research lead, import rows, deduplicate, create/approve draft, and export.
 - Integrations are adapters with typed boundaries and safe local/mock implementations.
 - Every mutating command accepts an idempotency key where retries are possible.
+- Keyed commands persist a deterministic payload hash and return a machine-readable conflict when a key is reused with different input.
 - All external evidence stores source URL, retrieval timestamp, content hash or snapshot reference where legally appropriate, extractor/provider, and confidence/provenance.
 
 ### Authorization and identity

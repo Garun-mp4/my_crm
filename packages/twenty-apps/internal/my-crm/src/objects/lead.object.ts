@@ -436,6 +436,23 @@ export default defineObject({
       isUnique: true,
     },
     {
+      universalIdentifier: 'd6e7f809-1a2b-4c56-8d70-445566778800',
+      type: FieldType.TEXT,
+      name: 'idempotencyKey',
+      label: 'Idempotency key',
+      icon: 'IconKey',
+      isNullable: true,
+      isUnique: true,
+    },
+    {
+      universalIdentifier: 'e7f8091a-2b3c-4d67-9e81-556677889911',
+      type: FieldType.TEXT,
+      name: 'idempotencyPayloadHash',
+      label: 'Idempotency payload hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
+    {
       universalIdentifier: 'c5d6e7f8-091a-4789-b123-334455667788',
       type: FieldType.RICH_TEXT,
       name: 'notes',

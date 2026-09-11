@@ -233,5 +233,13 @@ export default defineObject({
       isNullable: true,
       isUnique: true,
     },
+    {
+      universalIdentifier: '17891a2b-3c4d-4678-9890-112233445577',
+      type: FieldType.TEXT,
+      name: 'idempotencyPayloadHash',
+      label: 'Idempotency payload hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
   ],
 });

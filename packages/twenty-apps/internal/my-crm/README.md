@@ -23,9 +23,16 @@ When working inside this directory, install the isolated dependencies and run:
 
 ```text
 yarn install
-yarn test
+yarn test:unit
 yarn lint
 ```
+
+The full `yarn test` command runs the unit and integration projects. The
+integration project requires `TWENTY_API_URL` and `TWENTY_API_KEY`; it syncs the
+app to that test workspace, exercises the semantic create-lead tool including
+idempotency conflict handling, and removes the app during teardown. Use a
+disposable test workspace for it. The temporary Twenty CLI test config is
+restored after the run.
 
 The generated `.twenty/` directory and `node_modules/` are local artifacts and are intentionally ignored.
 

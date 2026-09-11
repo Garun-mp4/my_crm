@@ -6,11 +6,11 @@ This document records the first implementation contract for the internal CRM app
 
 | Object | Purpose | Important invariants |
 | --- | --- | --- |
-| Lead | The potential client and current sales state | A deterministic `dedupeKey` prevents repeated imports; lifecycle changes are checked by the semantic domain functions. |
+| Lead | The potential client and current sales state | A deterministic `dedupeKey` prevents repeated imports; lifecycle changes are checked by the semantic domain functions; keyed creates store a payload hash. |
 | Research | A source-backed fact or observation about a lead | Every record carries a source URL, observed time, confidence, provenance, and an evidence hash. |
 | Research job | A bounded local/provider execution attempt | Jobs are queued, retryable only when the adapter marks the failure retryable, and never promote AI output beyond review-required evidence. |
 | Outreach draft | A proposed first message or follow-up | Drafts start as `NEEDS_REVIEW`; approval is a separate action and does not send a message. |
-| CRM activity | Append-only operational history | Activity records preserve actor role, actor identity, source, timestamp, and idempotency key where available. |
+| CRM activity | Append-only operational history | Activity records preserve actor role, actor identity, source, timestamp, idempotency key, and payload hash where available. |
 
 The object IDs are stable UUID v4 values declared in `src/objects`. They must not be regenerated during ordinary development because installed workspaces refer to them.
 
@@ -51,7 +51,7 @@ The core list experience is provided by Twenty's server-backed object views. The
 
 ## Import and export
 
-CSV preview is pure validation plus a bounded workspace duplicate lookup. Commit requires an explicit confirmation flag, records a `Lead import batch`, writes only accepted non-duplicate rows, and stores created lead IDs and row-level errors. A human workspace member can soft-roll back a committed or partial batch by its batch ID. Export uses a stable column order and RFC-style escaping for commas, quotes, and line breaks.
+CSV preview is pure validation plus a bounded workspace duplicate lookup. Commit requires an explicit confirmation flag, records a `Lead import batch`, writes only accepted non-duplicate rows, and stores created lead IDs and row-level errors. A human workspace member can soft-roll back a committed or partial batch by its batch ID. Export uses a stable column order and RFC-style escaping for commas, quotes, and line breaks. Every keyed command stores a deterministic payload hash; a retry with the same key and different payload returns `IDEMPOTENCY_CONFLICT`.
 
 Research execution uses a replaceable adapter boundary. The checked-in `LOCAL_FIXTURE` adapter is deterministic and does not fetch or scrape external sites; it accepts a supplied observation, stores it as `AI_DRAFT`, and leaves the evidence in `REVIEW_REQUIRED`. A transient adapter failure moves the job to `FAILED` with a bounded exponential retry time. A worker or MCP caller must explicitly run or retry a job.
 

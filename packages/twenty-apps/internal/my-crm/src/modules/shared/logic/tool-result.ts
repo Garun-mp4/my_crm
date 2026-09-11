@@ -1,8 +1,11 @@
+import { IdempotencyConflictError } from '../integrations/idempotency';
+
 export type ToolFailure = {
   ok: false;
   code:
     | 'INVALID_INPUT'
     | 'DUPLICATE'
+    | 'IDEMPOTENCY_CONFLICT'
     | 'NOT_FOUND'
     | 'AUTHENTICATED_MEMBER_REQUIRED'
     | 'INVALID_STATE'
@@ -36,6 +39,12 @@ export const invalidState = (message: string): ToolFailure => ({
   message,
 });
 
+export const idempotencyConflict = (): ToolFailure => ({
+  ok: false,
+  code: 'IDEMPOTENCY_CONFLICT',
+  message: 'The idempotency key was already used with a different payload.',
+});
+
 export const researchFailed = ({
   message,
   retryable,
@@ -60,6 +69,8 @@ export const operationFailure = (error: unknown): ToolFailure => {
     '[my-crm] operation failed',
     error instanceof Error ? (error.stack ?? error.message) : String(error),
   );
+
+  if (error instanceof IdempotencyConflictError) return idempotencyConflict();
 
   return {
     ok: false,

@@ -146,6 +146,14 @@ export default defineObject({
       isUnique: true,
     },
     {
+      universalIdentifier: '7c2d3e4f-5061-4728-8394-001122334455',
+      type: FieldType.TEXT,
+      name: 'idempotencyPayloadHash',
+      label: 'Idempotency payload hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
+    {
       universalIdentifier: '5fa3cf75-e6f7-4456-9b12-112233445566',
       type: FieldType.DATE_TIME,
       name: 'committedAt',

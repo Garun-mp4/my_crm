@@ -5,6 +5,10 @@ import {
   readProperty,
   readString,
 } from '../integrations/core-api';
+import {
+  assertIdempotencyPayloadMatches,
+  buildIdempotencyPayloadHash,
+} from '../integrations/idempotency';
 
 export type AuditActivityInput = {
   leadId: string;
@@ -15,26 +19,46 @@ export type AuditActivityInput = {
   actor: string;
   source: string;
   idempotencyKey: string;
+  payloadHash?: string;
 };
 
 export const createAuditActivity = async (
   client: CoreApiClient,
   input: AuditActivityInput,
 ): Promise<string | null> => {
+  const idempotencyPayloadHash =
+    input.payloadHash ??
+    buildIdempotencyPayloadHash(input.source, {
+      leadId: input.leadId,
+      name: input.name,
+      type: input.type,
+      body: input.body,
+      actorRole: input.actorRole,
+      actor: input.actor,
+      source: input.source,
+    });
   const existingResponse: unknown = await client.query({
     crmActivities: {
       __args: {
         filter: { idempotencyKey: { eq: input.idempotencyKey } },
         first: 1,
       },
-      edges: { node: { id: true } },
+      edges: {
+        node: { id: true, idempotencyPayloadHash: true },
+      },
     },
   });
-  const existingId = readString(
-    readFirstEdgeNode(readProperty(existingResponse, 'crmActivities')),
-    'id',
+  const existing = readFirstEdgeNode(
+    readProperty(existingResponse, 'crmActivities'),
   );
-  if (existingId) return existingId;
+  const existingId = readString(existing, 'id');
+  if (existingId) {
+    assertIdempotencyPayloadMatches(
+      readString(existing, 'idempotencyPayloadHash'),
+      idempotencyPayloadHash,
+    );
+    return existingId;
+  }
 
   const response: unknown = await client.mutation({
     createCrmActivity: {
@@ -47,6 +71,7 @@ export const createAuditActivity = async (
           actor: input.actor,
           source: input.source,
           idempotencyKey: input.idempotencyKey,
+          idempotencyPayloadHash,
           occurredAt: new Date().toISOString(),
           leadId: input.leadId,
         },

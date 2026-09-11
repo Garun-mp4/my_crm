@@ -166,6 +166,14 @@ export default defineObject({
       isUnique: true,
     },
     {
+      universalIdentifier: 'a0123b4c-5d6e-4f89-9012-445566778800',
+      type: FieldType.TEXT,
+      name: 'idempotencyPayloadHash',
+      label: 'Idempotency payload hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
+    {
       universalIdentifier: '9fa0341b-b526-4734-8901-778899001122',
       type: FieldType.TEXT,
       name: 'externalMessageId',

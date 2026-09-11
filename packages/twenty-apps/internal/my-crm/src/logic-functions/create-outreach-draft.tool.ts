@@ -8,6 +8,10 @@ import {
   readString,
 } from '../modules/shared/integrations/core-api';
 import {
+  assertIdempotencyPayloadMatches,
+  buildIdempotencyPayloadHash,
+} from '../modules/shared/integrations/idempotency';
+import {
   createOutreachDraftSchema,
   type CreateOutreachDraftPayload,
 } from '../modules/shared/logic/tool-schemas';
@@ -55,6 +59,10 @@ const handler = async (
   if (!parsed.success) return invalidInput('Outreach draft input is invalid.');
 
   const input = parsed.data;
+  const idempotencyPayloadHash = buildIdempotencyPayloadHash(
+    'crm_create_outreach_draft',
+    { ...input, idempotencyKey: undefined },
+  );
   const client = buildAppClient();
 
   try {
@@ -64,7 +72,9 @@ const handler = async (
           filter: { idempotencyKey: { eq: input.idempotencyKey } },
           first: 1,
         },
-        edges: { node: { id: true } },
+        edges: {
+          node: { id: true, idempotencyPayloadHash: true },
+        },
       },
     });
     const existing = readFirstEdgeNode(
@@ -72,6 +82,10 @@ const handler = async (
     );
     const existingId = readString(existing, 'id');
     if (existingId) {
+      assertIdempotencyPayloadMatches(
+        readString(existing, 'idempotencyPayloadHash'),
+        idempotencyPayloadHash,
+      );
       return {
         ok: true,
         draftId: existingId,
@@ -90,6 +104,7 @@ const handler = async (
             body: input.body,
             sourceFacts: input.sourceFacts,
             idempotencyKey: input.idempotencyKey,
+            idempotencyPayloadHash,
             generatedAt: new Date().toISOString(),
             status: 'NEEDS_REVIEW',
             leadId: input.leadId,

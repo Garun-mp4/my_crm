@@ -17,6 +17,10 @@ import {
 } from '../modules/shared/integrations/core-api';
 import { sha256Hex } from '../modules/shared/integrations/hash';
 import {
+  assertIdempotencyPayloadMatches,
+  buildIdempotencyPayloadHash,
+} from '../modules/shared/integrations/idempotency';
+import {
   invalidInput,
   operationFailure,
   type ToolResult,
@@ -62,6 +66,7 @@ type ExistingBatch = {
   id: string;
   status: string | null;
   createdLeadIds: string[];
+  idempotencyPayloadHash: string | null;
 };
 
 const readStringArray = (value: unknown): string[] =>
@@ -76,7 +81,14 @@ const findExistingBatch = async (
   const response: unknown = await client.query({
     leadImportBatches: {
       __args: { filter: { idempotencyKey: { eq: idempotencyKey } }, first: 1 },
-      edges: { node: { id: true, status: true, createdLeadIds: true } },
+      edges: {
+        node: {
+          id: true,
+          status: true,
+          createdLeadIds: true,
+          idempotencyPayloadHash: true,
+        },
+      },
     },
   });
   const batch = readEdges(readProperty(response, 'leadImportBatches'))[0];
@@ -87,6 +99,7 @@ const findExistingBatch = async (
     id,
     status: readString(batch, 'status'),
     createdLeadIds: readStringArray(readProperty(batch, 'createdLeadIds')),
+    idempotencyPayloadHash: readString(batch, 'idempotencyPayloadHash'),
   };
 };
 
@@ -99,10 +112,18 @@ const handler = async (
 
   const input = parsed.data;
   const client = buildAppClient();
+  const idempotencyPayloadHash = buildIdempotencyPayloadHash(
+    'crm_import_leads',
+    { ...input, idempotencyKey: undefined },
+  );
 
   try {
     const existingBatch = await findExistingBatch(client, input.idempotencyKey);
     if (existingBatch) {
+      assertIdempotencyPayloadMatches(
+        existingBatch.idempotencyPayloadHash,
+        idempotencyPayloadHash,
+      );
       const status =
         existingBatch.status === 'COMMITTED' ||
         existingBatch.status === 'PARTIAL' ||
@@ -142,6 +163,7 @@ const handler = async (
             rejectedRows: plan.rejectedRows.length,
             errorReport: plan.issues,
             idempotencyKey: input.idempotencyKey,
+            idempotencyPayloadHash,
           },
         },
         id: true,

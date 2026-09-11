@@ -46,7 +46,7 @@ M0 passed with bounded environment conditions. Repository bootstrap, license inv
 - [x] Add regression-test scope and bounded remediation notes for gate findings that affect the new CRM.
 - [x] Record M0 pass decision and evidence in `docs/M0_BASELINE_REPORT.md`.
 
-M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline now has an independent build path: portable Node `v24.5.0`, 10 Vitest files / 25 tests, SDK manifest build, and app lint pass. Root MCP policy tests pass 22/22. Docker health/login, the full server build, and network-backed dependency audit remain release evidence rather than silently claimed successes.
+M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline now has an independent build path: portable Node `v24.5.0`, 11 unit-test files / 27 tests, SDK manifest build, app lint pass, and a documented server-backed integration suite. Root MCP policy tests pass 22/22. Docker health/login, the full server build, and network-backed dependency audit remain release evidence rather than silently claimed successes.
 
 ## Milestone ledger
 
@@ -59,7 +59,7 @@ M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline n
 | M5 Application/service layer | Implemented at app boundary | Semantic logic functions centralize validation, dedupe, audit, approval, import, and lifecycle behavior; Twenty's generic object UI remains the standard record transport. |
 | M6 API contracts | Complete | Zod input schemas plus explicit JSON tool schemas with bounded payloads. |
 | M7 Error model | Complete | Typed `ToolResult` machine codes and safe operation-failure messages. |
-| M8 Idempotency/duplicates | Complete | Deterministic website/directory/name-city keys, database uniqueness on dedupe/idempotency fields, retry-safe tool keys, import duplicate plan, and tracked rollback batch. |
+| M8 Idempotency/duplicates | Complete | Deterministic website/directory/name-city keys, database uniqueness on dedupe/idempotency fields, stored payload hashes, explicit `IDEMPOTENCY_CONFLICT` handling, retry-safe tool keys, import duplicate plan, and tracked rollback batch. |
 | M9 Research-source policy | Complete | HTTP(S)-only public-source validation, no private-host fetch boundary, and no terms/rate-limit bypass logic. |
 | M10 Evidence/provenance | Complete | Source URL, observed time, confidence, provenance, hash, payload, actor and audit activity fields. |
 | M11 Research queue/retries | Complete at app boundary | Research Job object, local fixture adapter, queued/running/succeeded/failed state, bounded exponential retry metadata, explicit run/retry tools, idempotent evidence persistence, and adapter/state tests are implemented. A real background worker remains deployment wiring. |
@@ -72,7 +72,7 @@ M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline n
 | M18 MCP guarded writes | Complete at current scope | Explicit 14-tool semantic allowlist covers lead, transition, queue/retry, import, research, draft, approval, rollback, and activity paths with role/audit/idempotency checks. |
 | M19 Analytics/dashboard | Initial slice complete | Research desk shows total/research/draft-ready/attention summaries; funnel and data-quality analytics remain a follow-up. |
 | M20 Load/security/recovery | Partial | Pure workload tests and backup/restore rehearsal docs exist; staging load, Docker restore, and full security integration checks remain. |
-| M21 Release hardening | In progress | Root/upstream strategy, docs, app build, targeted tests, MCP boundary checks, and retryable-job checks are in place; runtime E2E and Docker evidence remain. |
+| M21 Release hardening | In progress | Root/upstream strategy, docs, app build, unit tests, server-backed app integration test, MCP boundary checks, and retryable-job checks are in place; runtime E2E and Docker evidence remain. |
 
 ## Assumptions
 

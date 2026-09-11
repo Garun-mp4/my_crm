@@ -10,6 +10,10 @@ import {
   readString,
 } from '../modules/shared/integrations/core-api';
 import {
+  assertIdempotencyPayloadMatches,
+  buildIdempotencyPayloadHash,
+} from '../modules/shared/integrations/idempotency';
+import {
   recordResearchSchema,
   type RecordResearchPayload,
 } from '../modules/shared/logic/tool-schemas';
@@ -84,6 +88,12 @@ const handler = async (
 
   const client = buildAppClient();
   const reviewRequired = input.provenance === 'AI_DRAFT';
+  const idempotencyPayloadHash = input.idempotencyKey
+    ? buildIdempotencyPayloadHash('crm_record_research', {
+        ...input,
+        idempotencyKey: undefined,
+      })
+    : undefined;
 
   try {
     if (input.idempotencyKey) {
@@ -93,15 +103,22 @@ const handler = async (
             filter: { extractionRunId: { eq: input.idempotencyKey } },
             first: 1,
           },
-          edges: { node: { id: true } },
+          edges: {
+            node: { id: true, idempotencyPayloadHash: true },
+          },
         },
       });
-      const existingId = readString(
-        readFirstEdgeNode(readProperty(existingResponse, 'researches')),
-        'id',
+      const existing = readFirstEdgeNode(
+        readProperty(existingResponse, 'researches'),
       );
-      if (existingId)
+      const existingId = readString(existing, 'id');
+      if (existingId) {
+        assertIdempotencyPayloadMatches(
+          readString(existing, 'idempotencyPayloadHash'),
+          idempotencyPayloadHash ?? '',
+        );
         return { ok: true, researchId: existingId, reviewRequired };
+      }
     }
 
     const data: Record<string, unknown> = {
@@ -119,6 +136,7 @@ const handler = async (
       payload: input.payload,
       status: reviewRequired ? 'REVIEW_REQUIRED' : 'CAPTURED',
       extractionRunId: input.idempotencyKey,
+      idempotencyPayloadHash,
       leadId: input.leadId,
     };
     const response: unknown = await client.mutation({

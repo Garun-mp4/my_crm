@@ -187,6 +187,14 @@ export default defineObject({
       isUnique: true,
     },
     {
+      universalIdentifier: '5bc6f037-1748-4956-9b12-223344556688',
+      type: FieldType.TEXT,
+      name: 'idempotencyPayloadHash',
+      label: 'Idempotency payload hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
+    {
       universalIdentifier: '5bc6f037-1748-4956-8234-223344556677',
       type: FieldType.DATE_TIME,
       name: 'sentAt',

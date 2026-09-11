@@ -3,12 +3,17 @@ import { randomUUID } from 'node:crypto';
 import { type LogicFunctionExecutionContext } from 'twenty-shared/logic-function';
 import { defineLogicFunction } from 'twenty-sdk/define';
 
+import { type ResearchJobStatus } from '../modules/research/research-job';
 import {
   buildAppClient,
   readFirstEdgeNode,
   readProperty,
   readString,
 } from '../modules/shared/integrations/core-api';
+import {
+  assertIdempotencyPayloadMatches,
+  buildIdempotencyPayloadHash,
+} from '../modules/shared/integrations/idempotency';
 import { validateResearchSource } from '../modules/shared/domain/research-source-policy';
 import {
   invalidInput,
@@ -45,7 +50,7 @@ const inputSchema = {
 type StartResearchResult = ToolResult<{
   jobId: string;
   correlationId: string;
-  status: 'QUEUED';
+  status: ResearchJobStatus;
   duplicate: boolean;
 }>;
 
@@ -57,6 +62,10 @@ const handler = async (
   if (!parsed.success) return invalidInput('Research job input is invalid.');
 
   const input = parsed.data;
+  const idempotencyPayloadHash = buildIdempotencyPayloadHash(
+    'crm_start_research',
+    { ...input, idempotencyKey: undefined },
+  );
   const sourceValidation = validateResearchSource(input.sourceUrl);
   if (!sourceValidation.valid)
     return invalidInput(
@@ -85,7 +94,14 @@ const handler = async (
           filter: { idempotencyKey: { eq: input.idempotencyKey } },
           first: 1,
         },
-        edges: { node: { id: true, status: true, correlationId: true } },
+        edges: {
+          node: {
+            id: true,
+            status: true,
+            correlationId: true,
+            idempotencyPayloadHash: true,
+          },
+        },
       },
     });
     const existing = readFirstEdgeNode(
@@ -93,11 +109,17 @@ const handler = async (
     );
     const existingId = readString(existing, 'id');
     if (existingId) {
+      assertIdempotencyPayloadMatches(
+        readString(existing, 'idempotencyPayloadHash'),
+        idempotencyPayloadHash,
+      );
       return {
         ok: true,
         jobId: existingId,
         correlationId: readString(existing, 'correlationId') ?? correlationId,
-        status: 'QUEUED',
+        status:
+          (readString(existing, 'status') as ResearchJobStatus | null) ??
+          'QUEUED',
         duplicate: true,
       };
     }
@@ -120,6 +142,7 @@ const handler = async (
             },
             correlationId,
             idempotencyKey: input.idempotencyKey,
+            idempotencyPayloadHash,
             queuedAt: new Date().toISOString(),
             leadId,
           },

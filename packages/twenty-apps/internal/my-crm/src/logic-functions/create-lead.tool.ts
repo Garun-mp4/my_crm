@@ -8,6 +8,10 @@ import {
   readProperty,
   readString,
 } from '../modules/shared/integrations/core-api';
+import {
+  assertIdempotencyPayloadMatches,
+  buildIdempotencyPayloadHash,
+} from '../modules/shared/integrations/idempotency';
 import { createAuditActivity } from '../modules/shared/services/audit-activity.service';
 import {
   createLeadSchema,
@@ -57,9 +61,45 @@ const handler = async (
 
   const input = parsed.data;
   const dedupeKey = buildLeadDedupeKey(input);
+  const idempotencyPayloadHash = input.idempotencyKey
+    ? buildIdempotencyPayloadHash('crm_create_lead', {
+        ...input,
+        idempotencyKey: undefined,
+      })
+    : undefined;
   const client = buildAppClient();
 
   try {
+    if (input.idempotencyKey && idempotencyPayloadHash) {
+      const idempotencyResponse: unknown = await client.query({
+        leads: {
+          __args: {
+            filter: { idempotencyKey: { eq: input.idempotencyKey } },
+            first: 1,
+          },
+          edges: {
+            node: { id: true, idempotencyPayloadHash: true },
+          },
+        },
+      });
+      const existingByKey = readFirstEdgeNode(
+        readProperty(idempotencyResponse, 'leads'),
+      );
+      const existingByKeyId = readString(existingByKey, 'id');
+      if (existingByKeyId) {
+        assertIdempotencyPayloadMatches(
+          readString(existingByKey, 'idempotencyPayloadHash'),
+          idempotencyPayloadHash,
+        );
+        return {
+          ok: true,
+          leadId: existingByKeyId,
+          dedupeKey,
+          duplicate: true,
+        };
+      }
+    }
+
     const existingResponse: unknown = await client.query({
       leads: {
         __args: { filter: { dedupeKey: { eq: dedupeKey } }, first: 1 },
@@ -79,6 +119,8 @@ const handler = async (
       rating: input.rating,
       reviewCount: input.reviewCount,
       dedupeKey,
+      idempotencyKey: input.idempotencyKey,
+      idempotencyPayloadHash,
       websiteUrl: input.websiteUrl
         ? { primaryLinkUrl: input.websiteUrl }
         : undefined,

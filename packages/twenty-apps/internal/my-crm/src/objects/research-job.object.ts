@@ -178,6 +178,14 @@ export default defineObject({
       isUnique: true,
     },
     {
+      universalIdentifier: '8091a2b3-c4d5-4e56-8789-990011223344',
+      type: FieldType.TEXT,
+      name: 'idempotencyPayloadHash',
+      label: 'Idempotency payload hash',
+      icon: 'IconHash',
+      isNullable: true,
+    },
+    {
       universalIdentifier: '8091a2b3-c4d5-4e56-8789-9900112233ff',
       type: FieldType.TEXT,
       name: 'resultResearchId',
