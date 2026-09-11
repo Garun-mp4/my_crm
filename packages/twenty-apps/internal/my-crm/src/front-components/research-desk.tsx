@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { defineFrontComponent } from 'twenty-sdk/define';
 
@@ -17,6 +17,13 @@ type LeadPage = {
   nextCursor: string | null;
 };
 
+type LeadSummary = {
+  total: number;
+  researching: number;
+  ready: number;
+  needsAttention: number;
+};
+
 type LoadingState =
   | { kind: 'loading' }
   | {
@@ -24,6 +31,7 @@ type LoadingState =
       rows: LeadRow[];
       nextCursor: string | null;
       loadingMore: boolean;
+      summary: LeadSummary;
       loadMoreError?: string;
     }
   | { kind: 'error'; message: string };
@@ -95,6 +103,43 @@ const loadLeads = async (after?: string): Promise<LeadPage> => {
       : null;
 
   return { rows, nextCursor };
+};
+
+const countLeads = async (
+  filter?: Record<string, unknown>,
+): Promise<number> => {
+  const response: unknown = await new CoreApiClient().query({
+    leads: {
+      __args: {
+        first: 1,
+        ...(filter ? { filter } : {}),
+      },
+      edges: { node: { id: true } },
+      totalCount: true,
+    },
+  });
+
+  if (!isRecord(response) || !isRecord(response.leads)) {
+    throw new Error('Lead count response is invalid.');
+  }
+
+  const totalCount = response.leads.totalCount;
+  if (typeof totalCount !== 'number') {
+    throw new Error('Lead count was not returned by the server.');
+  }
+
+  return totalCount;
+};
+
+const loadSummary = async (): Promise<LeadSummary> => {
+  const [total, researching, ready, needsAttention] = await Promise.all([
+    countLeads(),
+    countLeads({ status: { eq: 'RESEARCHING' } }),
+    countLeads({ status: { eq: 'DRAFT_READY' } }),
+    countLeads({ priority: { in: ['HIGH', 'URGENT'] } }),
+  ]);
+
+  return { total, researching, ready, needsAttention };
 };
 
 const statusLabel = (status: string): string =>
@@ -257,14 +302,15 @@ const ResearchDesk = () => {
 
   useEffect(() => {
     let cancelled = false;
-    void loadLeads()
-      .then((page) => {
+    void Promise.all([loadLeads(), loadSummary()])
+      .then(([page, summary]) => {
         if (!cancelled)
           setState({
             kind: 'ready',
             rows: page.rows,
             nextCursor: page.nextCursor,
             loadingMore: false,
+            summary,
           });
       })
       .catch(() => {
@@ -311,19 +357,10 @@ const ResearchDesk = () => {
     }
   };
 
-  const summary = useMemo(() => {
-    if (state.kind !== 'ready')
-      return { total: 0, researching: 0, ready: 0, needsAttention: 0 };
-    return {
-      total: state.rows.length,
-      researching: state.rows.filter((row) => row.status === 'RESEARCHING')
-        .length,
-      ready: state.rows.filter((row) => row.status === 'DRAFT_READY').length,
-      needsAttention: state.rows.filter(
-        (row) => row.priority === 'HIGH' || row.priority === 'URGENT',
-      ).length,
-    };
-  }, [state]);
+  const summary: LeadSummary =
+    state.kind === 'ready'
+      ? state.summary
+      : { total: 0, researching: 0, ready: 0, needsAttention: 0 };
 
   return (
     <main style={styles.root} aria-labelledby="research-desk-title">
