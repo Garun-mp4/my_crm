@@ -20,6 +20,7 @@ import {
   readProperty,
   readRecord,
   readString,
+  toRichTextValue,
 } from '../modules/shared/integrations/core-api';
 import {
   invalidInput,
@@ -145,7 +146,7 @@ const markJobFailed = async ({
           status: 'FAILED',
           attemptCount,
           retryable: shouldRetry,
-          lastError: message,
+          lastError: toRichTextValue(message),
           nextRetryAt,
           completedAt: new Date().toISOString(),
         },
@@ -294,7 +295,7 @@ const handler = async (
               data: {
                 name: adapterResult.name,
                 kind: adapterResult.kind,
-                fact: evidenceValidation.normalizedFact,
+                fact: toRichTextValue(evidenceValidation.normalizedFact),
                 sourceUrl: { primaryLinkUrl: adapterResult.sourceUrl },
                 sourceTitle: adapterResult.sourceTitle,
                 observedAt: new Date().toISOString(),

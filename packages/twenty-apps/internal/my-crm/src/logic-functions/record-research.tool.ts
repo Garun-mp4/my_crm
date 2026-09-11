@@ -8,6 +8,7 @@ import {
   readFirstEdgeNode,
   readProperty,
   readString,
+  toRichTextValue,
 } from '../modules/shared/integrations/core-api';
 import {
   assertIdempotencyPayloadMatches,
@@ -124,7 +125,7 @@ const handler = async (
     const data: Record<string, unknown> = {
       name: input.name,
       kind: input.kind,
-      fact: validation.normalizedFact,
+      fact: toRichTextValue(validation.normalizedFact),
       sourceUrl: input.sourceUrl
         ? { primaryLinkUrl: sourceValidation.normalizedUrl }
         : undefined,

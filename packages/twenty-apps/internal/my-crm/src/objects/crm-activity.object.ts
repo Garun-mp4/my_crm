@@ -37,7 +37,7 @@ export default defineObject({
     {
       universalIdentifier: '8ef9230a-a415-4623-b789-001122334455',
       type: FieldType.SELECT,
-      name: 'type',
+      name: 'activityType',
       label: 'Type',
       icon: 'IconCategory',
       isNullable: true,

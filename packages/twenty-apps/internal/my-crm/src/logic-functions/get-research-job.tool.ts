@@ -6,6 +6,7 @@ import {
   readFirstEdgeNode,
   readNumber,
   readProperty,
+  readRichText,
   readString,
 } from '../modules/shared/integrations/core-api';
 import {
@@ -89,7 +90,7 @@ const handler = async (
       maxAttempts,
       retryable,
       nextRetryAt: readString(job, 'nextRetryAt'),
-      lastError: readString(job, 'lastError'),
+      lastError: readRichText(readProperty(job, 'lastError')),
       resultResearchId: readString(job, 'resultResearchId'),
       correlationId,
     };

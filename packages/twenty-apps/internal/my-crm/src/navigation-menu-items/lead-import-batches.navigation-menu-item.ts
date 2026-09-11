@@ -1,4 +1,7 @@
-import { defineNavigationMenuItem } from 'twenty-sdk/define';
+import {
+  defineNavigationMenuItem,
+  NavigationMenuItemType,
+} from 'twenty-sdk/define';
 
 import { LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/lead-import-batch.object';
 
@@ -7,5 +10,6 @@ export default defineNavigationMenuItem({
   name: 'Import batches',
   icon: 'IconFileImport',
   position: 5,
-  objectUniversalIdentifier: LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER,
+  type: NavigationMenuItemType.OBJECT,
+  targetObjectUniversalIdentifier: LEAD_IMPORT_BATCH_OBJECT_UNIVERSAL_IDENTIFIER,
 });

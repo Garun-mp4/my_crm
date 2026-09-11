@@ -6,6 +6,7 @@ import {
   readFirstEdgeNode,
   readProperty,
   readString,
+  toRichTextValue,
 } from '../modules/shared/integrations/core-api';
 import {
   assertIdempotencyPayloadMatches,
@@ -101,8 +102,8 @@ const handler = async (
             name: `${input.channel} draft for ${input.leadId}`,
             channel: input.channel,
             subject: input.subject,
-            body: input.body,
-            sourceFacts: input.sourceFacts,
+            body: toRichTextValue(input.body),
+            sourceFacts: toRichTextValue(input.sourceFacts),
             idempotencyKey: input.idempotencyKey,
             idempotencyPayloadHash,
             generatedAt: new Date().toISOString(),

@@ -13,6 +13,7 @@ import { extractFrontComponentSharedDependencies } from '@/cli/utilities/build/m
 import { validateConditionalAvailabilityUsage } from '@/cli/utilities/build/manifest/utils/validate-conditional-availability-usage';
 import { validateViewFilterOperands } from '@/cli/utilities/build/manifest/utils/validate-view-filter-operands';
 import { getEngineVersionRange } from '@/cli/utilities/version/get-engine-version-range';
+import { toResourcePath } from '@/cli/utilities/file/to-resource-path';
 import { type ApplicationConfig, type LogicFunctionConfig } from '@/sdk/define';
 import { type CommandMenuItemConfig } from '@/sdk/define/command-menu-items/command-menu-item-config';
 import { type FrontComponentConfig } from '@/sdk/define/front-component/front-component-config';
@@ -150,7 +151,7 @@ export const buildManifest = async (
 
   for (const filePath of filePaths) {
     const fileContent = await readFile(filePath, 'utf-8');
-    const relativePath = relative(appPath, filePath);
+    const relativePath = toResourcePath(relative(appPath, filePath));
 
     errors.push(
       ...validateConditionalAvailabilityUsage(fileContent, relativePath),
@@ -369,7 +370,7 @@ export const buildManifest = async (
 
         const { component, ...rest } = extract.config;
 
-        const relativeFilePath = relative(appPath, filePath);
+        const relativeFilePath = toResourcePath(relative(appPath, filePath));
 
         const config: FrontComponentManifest = {
           ...rest,
@@ -522,7 +523,7 @@ export const buildManifest = async (
   const assetFiles = await loadAssets(appPath);
 
   for (const assetFile of assetFiles) {
-    const relativePath = relative(appPath, assetFile);
+    const relativePath = toResourcePath(relative(appPath, assetFile));
     publicAssets.push({
       filePath: relativePath,
       fileName: basename(assetFile),

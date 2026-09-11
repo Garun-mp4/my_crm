@@ -2,11 +2,28 @@ import { CoreApiClient } from 'twenty-client-sdk/core';
 
 export const buildAppClient = (): CoreApiClient => new CoreApiClient();
 
+export type RichTextValue = { markdown: string };
+
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
 export const readProperty = (value: unknown, property: string): unknown =>
   isRecord(value) ? value[property] : undefined;
+
+export const toRichTextValue = (
+  value: string | null | undefined,
+): RichTextValue | undefined =>
+  value && value.trim().length > 0 ? { markdown: value } : undefined;
+
+export const readRichText = (value: unknown): string | null => {
+  if (typeof value === 'string') return value;
+
+  const markdown = readProperty(value, 'markdown');
+  if (typeof markdown === 'string') return markdown;
+
+  const blocknote = readProperty(value, 'blocknote');
+  return typeof blocknote === 'string' ? blocknote : null;
+};
 
 export const readRecord = (value: unknown): Record<string, unknown> | null =>
   isRecord(value) ? value : null;

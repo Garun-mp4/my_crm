@@ -14,7 +14,7 @@ Base: `twenty/v2.39.0` (`92359d5a70dee70f4084ddc98e0de0f7685cf358`)
 
 ## Current gate
 
-M0 passed with bounded environment conditions. Repository bootstrap, license inventory, dependency install, direct shared checks, targeted MCP/ORM tests, and source-level permission/MCP review are recorded in `docs/M0_BASELINE_REPORT.md`. Docker engine availability, full server build artifacts, and a network-backed dependency audit remain release-hardening conditions.
+M0 passed with bounded environment conditions. Repository bootstrap, license inventory, dependency install, direct shared checks, targeted MCP/ORM tests, and source-level permission/MCP review are recorded in `docs/M0_BASELINE_REPORT.md`. The later runtime follow-up has now exercised Docker PostgreSQL/Redis, the Windows server build, app installation, authenticated logic-function execution, and the installed-app MCP boundary. Browser rehearsal, staging load/security checks, and a network-backed dependency audit remain release-hardening evidence.
 
 ## Evidence ledger
 
@@ -41,12 +41,24 @@ M0 passed with bounded environment conditions. Repository bootstrap, license inv
 - [x] Verify the exact checkout and source package manifests.
 - [x] Verify Node/Yarn requirements and install dependencies reproducibly.
 - [x] Run baseline unit/type/lint/build checks or record bounded pre-existing failures.
-- [~] Start the documented Docker stack and exercise health/login if the local environment permits it. Docker engine is unavailable on this host; carry forward to release hardening.
+- [x] Start the documented Docker stack and exercise health/login when the local environment permits it. The initial M0 run was bounded by Docker availability; the follow-up runtime rehearsal passed with Docker Desktop.
 - [x] Review authentication, workspace scoping, record/field authorization, system-object behavior, API boundaries, MCP guards/tools, and audit hooks.
 - [x] Add regression-test scope and bounded remediation notes for gate findings that affect the new CRM.
 - [x] Record M0 pass decision and evidence in `docs/M0_BASELINE_REPORT.md`.
 
-M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline now has an independent build path: portable Node `v24.5.0`, 11 unit-test files / 27 tests, SDK manifest build, app lint pass, and a documented server-backed integration suite. Root MCP policy tests pass 22/22. Docker health/login, the full server build, and network-backed dependency audit remain release evidence rather than silently claimed successes.
+M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline has an independent build path: portable Node `v24.5.0`, 11 unit-test files / 27 tests, SDK manifest build, app lint pass, and a server-backed integration suite. Root MCP policy tests pass 22/22. The runtime follow-up also passed Docker health, user login, full server compilation, app sync, authenticated lead creation/idempotency, and installed-app MCP listing. Browser/load/security hardening and network-backed dependency audit remain explicitly open.
+
+## Runtime follow-up
+
+- [x] Docker Desktop development PostgreSQL and Redis containers are healthy.
+- [x] Twenty server compiles on Windows with SWC (`8,330` files); required runtime assets are copied into `dist`.
+- [x] `/healthz` returns `200` and the seeded test user can authenticate as a workspace member.
+- [x] My CRM app sync uploads all `32` application files, applies metadata, and generates its API client.
+- [x] Authenticated `crm_create_lead` execution passes creation, same-payload retry, and different-payload `IDEMPOTENCY_CONFLICT` checks; the audit activity is persisted.
+- [x] Installed-app MCP `tools/list` returns exactly the 14 semantic CRM tools and does not expose the generic Twenty bridge.
+- [x] PostgreSQL custom-format backup and restore rehearsal completed in a disposable database; the restored database contained the expected core schema.
+- [x] Windows resource-path normalization and Twenty rich-text mapping have regression coverage and passed runtime verification.
+- [ ] Browser responsive/accessibility rehearsal, staging load at 10k/50k/100k rows, and full security-negative integration checks remain before release.
 
 ## Milestone ledger
 
@@ -55,7 +67,7 @@ M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline n
 | M1 Domain dictionary | Complete | Six explicit objects, stable IDs, contract and design-system docs. |
 | M2 Lead state machine | Complete | Blueprint lifecycle, legal transitions, terminal-state tests, semantic transition tool. |
 | M3 Permission matrix | Complete | Human researcher, default function, and separately assignable research-agent roles; sensitive lead contact fields are denied to the agent role; approval/rollback fail closed for non-human actors. |
-| M4 Data model/custom objects | Complete with runtime rehearsal pending | Lead, Research, Research Job, Outreach Draft, CRM Activity, and Lead Import Batch manifests build successfully; installation/migration still needs Docker. |
+| M4 Data model/custom objects | Complete with browser rehearsal pending | Lead, Research, Research Job, Outreach Draft, CRM Activity, and Lead Import Batch manifests build, install, and migrate successfully in the disposable Docker workspace. |
 | M5 Application/service layer | Implemented at app boundary | Semantic logic functions centralize validation, dedupe, audit, approval, import, and lifecycle behavior; Twenty's generic object UI remains the standard record transport. |
 | M6 API contracts | Complete | Zod input schemas plus explicit JSON tool schemas with bounded payloads. |
 | M7 Error model | Complete | Typed `ToolResult` machine codes and safe operation-failure messages. |
@@ -71,8 +83,8 @@ M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline n
 | M17 MCP research tools | Complete at current scope | `crm_record_research` plus `crm_start_research`, `crm_run_research_job`, and `crm_retry_research_job` validate source/provenance and expose visible retry state through the same app services. |
 | M18 MCP guarded writes | Complete at current scope | Explicit 14-tool semantic allowlist covers lead, transition, queue/retry, import, research, draft, approval, rollback, and activity paths with role/audit/idempotency checks. |
 | M19 Analytics/dashboard | Initial slice complete | Research desk shows total/research/draft-ready/attention summaries; funnel and data-quality analytics remain a follow-up. |
-| M20 Load/security/recovery | Partial | Pure workload tests and backup/restore rehearsal docs exist; staging load, Docker restore, and full security integration checks remain. |
-| M21 Release hardening | In progress | Root/upstream strategy, docs, app build, unit tests, server-backed app integration test, MCP boundary checks, and retryable-job checks are in place; runtime E2E and Docker evidence remain. |
+| M20 Load/security/recovery | Partial | Pure workload tests and a disposable PostgreSQL backup/restore rehearsal pass; staging load, browser performance, and full security integration checks remain. |
+| M21 Release hardening | In progress | Root/upstream strategy, docs, app build, unit tests, server-backed app integration, MCP boundary checks, Docker health/login, and Windows runtime fixes are in place; browser E2E, staging load, and network/security evidence remain. |
 
 ## Assumptions
 
@@ -85,4 +97,4 @@ M0 is closed as **PASS WITH BOUNDED ENVIRONMENT CONDITIONS**. The app baseline n
 
 ## Known environment note
 
-The host currently reports Node `v22.22.2`, while the checked-in Twenty package requires Node `^24.5.0` and Yarn `4.13.0`. This is an environment compatibility issue to resolve or explicitly bound during M0; it is not a reason to alter the pinned upstream baseline.
+The default shell reports Node `v22.22.2`, while the checked-in Twenty package requires Node `^24.5.0` and Yarn `4.13.0`. Reproducible implementation and runtime checks use the portable Node `v24.5.0` toolchain; the default-shell mismatch remains a deployment prerequisite and is not a reason to alter the pinned upstream baseline.

@@ -4,6 +4,7 @@ import {
   readFirstEdgeNode,
   readProperty,
   readString,
+  toRichTextValue,
 } from '../integrations/core-api';
 import {
   assertIdempotencyPayloadMatches,
@@ -65,8 +66,8 @@ export const createAuditActivity = async (
       __args: {
         data: {
           name: input.name,
-          type: input.type,
-          body: input.body,
+          activityType: input.type,
+          body: toRichTextValue(input.body),
           actorRole: input.actorRole,
           actor: input.actor,
           source: input.source,

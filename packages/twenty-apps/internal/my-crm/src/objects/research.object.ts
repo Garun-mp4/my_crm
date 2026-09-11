@@ -131,6 +131,43 @@ export default defineObject({
       label: 'Confidence',
       icon: 'IconShieldCheck',
       isNullable: true,
+      options: [
+        option(
+          '4bcd5e6f-7081-4012-8456-556677889901',
+          'RATING_1',
+          '1',
+          0,
+          'red',
+        ),
+        option(
+          '5cde6f70-8192-4123-9567-667788990012',
+          'RATING_2',
+          '2',
+          1,
+          'orange',
+        ),
+        option(
+          '6def7081-92a3-4234-a678-778899001123',
+          'RATING_3',
+          '3',
+          2,
+          'yellow',
+        ),
+        option(
+          '7ef08192-a3b4-4345-b789-889900112234',
+          'RATING_4',
+          '4',
+          3,
+          'blue',
+        ),
+        option(
+          '8f012a3b-4c5d-4456-8980-990011223345',
+          'RATING_5',
+          '5',
+          4,
+          'green',
+        ),
+      ],
     },
     {
       universalIdentifier: '5bcd5e6f-7081-4012-8456-556677889900',

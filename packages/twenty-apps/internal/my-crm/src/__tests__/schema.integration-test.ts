@@ -9,6 +9,98 @@ type LogicExecution = {
   status: string;
 };
 
+type GraphqlResponse<T> = {
+  data?: T;
+  errors?: Array<{ message?: string }>;
+};
+
+type McpToolsResponse = {
+  result?: { tools?: Array<{ name?: string }> };
+  error?: { message?: string };
+};
+
+const postMetadataQuery = async <T>(
+  query: string,
+  variables: Record<string, string>,
+): Promise<T> => {
+  const apiUrl = process.env.TWENTY_API_URL;
+
+  if (!apiUrl) {
+    throw new Error('TWENTY_API_URL is required for integration tests.');
+  }
+
+  const response = await fetch(`${apiUrl}/metadata`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  });
+  const payload = (await response.json()) as GraphqlResponse<T>;
+
+  if (!response.ok || payload.errors?.length || !payload.data) {
+    const message = payload.errors
+      ?.map((error) => error.message)
+      .filter((error): error is string => Boolean(error))
+      .join('; ');
+
+    throw new Error(
+      message ?? `Metadata request failed with ${response.status}.`,
+    );
+  }
+
+  return payload.data;
+};
+
+const getUserAccessToken = async (): Promise<string> => {
+  const apiUrl = process.env.TWENTY_API_URL;
+  const origin = new URL(apiUrl ?? 'http://localhost:3000').toString();
+  const email = process.env.TWENTY_INTEGRATION_USER_EMAIL ?? 'tim@apple.dev';
+  const password =
+    process.env.TWENTY_INTEGRATION_USER_PASSWORD ?? 'tim@apple.dev';
+
+  const loginData = await postMetadataQuery<{
+    getLoginTokenFromCredentials: { loginToken: { token: string } };
+  }>(
+    `
+      mutation GetLoginTokenFromCredentials(
+        $email: String!
+        $password: String!
+        $origin: String!
+      ) {
+        getLoginTokenFromCredentials(
+          email: $email
+          password: $password
+          origin: $origin
+        ) {
+          loginToken { token }
+        }
+      }
+    `,
+    { email, password, origin },
+  );
+
+  const loginToken = loginData.getLoginTokenFromCredentials.loginToken.token;
+  const authData = await postMetadataQuery<{
+    getAuthTokensFromLoginToken: {
+      tokens: { accessOrWorkspaceAgnosticToken: { token: string } };
+    };
+  }>(
+    `
+      mutation GetAuthTokensFromLoginToken(
+        $loginToken: String!
+        $origin: String!
+      ) {
+        getAuthTokensFromLoginToken(loginToken: $loginToken, origin: $origin) {
+          tokens { accessOrWorkspaceAgnosticToken { token } }
+        }
+      }
+    `,
+    { loginToken, origin },
+  );
+
+  return authData.getAuthTokensFromLoginToken.tokens
+    .accessOrWorkspaceAgnosticToken.token;
+};
+
 const readExecutionData = (
   execution: LogicExecution,
 ): Record<string, unknown> => {
@@ -51,8 +143,15 @@ describe('My CRM app installation', () => {
       throw new Error('crm_create_lead is not installed');
     const createLeadFunctionId = createLeadFunction.id;
 
+    const userMetadataClient = new MetadataApiClient({
+      headers: {
+        Authorization: `Bearer ${await getUserAccessToken()}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
     const execute = async (payload: Record<string, unknown>) => {
-      const response = await metadataClient.mutation({
+      const response = await userMetadataClient.mutation({
         executeOneLogicFunction: {
           __args: {
             input: { id: createLeadFunctionId, payload },
@@ -77,7 +176,7 @@ describe('My CRM app installation', () => {
         idempotencyKey,
       });
       const first = readExecutionData(firstExecution);
-      expect(first.ok).toBe(true);
+      expect(first.ok, JSON.stringify(first)).toBe(true);
       leadId = typeof first.leadId === 'string' ? first.leadId : undefined;
       expect(leadId).toBeDefined();
 
@@ -110,6 +209,49 @@ describe('My CRM app installation', () => {
         },
       });
       expect(activities.crmActivities.edges.length).toBeGreaterThan(0);
+
+      const apiUrl = process.env.TWENTY_API_URL;
+      const apiKey = process.env.TWENTY_API_KEY;
+      if (!apiUrl || !apiKey)
+        throw new Error('Integration API configuration is missing.');
+
+      const mcpResponse = await fetch(`${apiUrl}/mcp`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'my-crm-tools-list',
+          method: 'tools/list',
+          params: {},
+        }),
+      });
+      const mcpPayload = (await mcpResponse.json()) as McpToolsResponse;
+      expect(mcpResponse.ok, JSON.stringify(mcpPayload)).toBe(true);
+      expect(mcpPayload.error).toBeUndefined();
+      expect(
+        mcpPayload.result?.tools?.map((tool) => tool.name)?.sort(),
+      ).toEqual(
+        [
+          'crm_list_leads',
+          'crm_create_lead',
+          'crm_transition_lead',
+          'crm_start_research',
+          'crm_run_research_job',
+          'crm_retry_research_job',
+          'crm_get_research_job',
+          'crm_preview_lead_import',
+          'crm_import_leads',
+          'crm_rollback_import',
+          'crm_record_research',
+          'crm_create_outreach_draft',
+          'crm_approve_outreach_draft',
+          'crm_log_activity',
+        ].sort(),
+      );
     } finally {
       if (leadId) {
         await client.mutation({

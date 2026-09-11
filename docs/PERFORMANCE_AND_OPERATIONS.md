@@ -17,7 +17,7 @@ Release targets:
 
 ## Docker and health
 
-The pinned Twenty compose setup remains the reference local environment. Run the documented development compose file from the repository root, then exercise `/healthz` and the login flow after PostgreSQL and Redis are healthy. The current host did not expose a working Docker Linux engine during M0, so these checks remain release evidence to collect on a Docker-capable machine.
+The pinned Twenty compose setup remains the reference local environment. Run the documented development compose file from the repository root, then exercise `/healthz` and the login flow after PostgreSQL and Redis are healthy. The runtime follow-up on 2026-09-11 passed these checks with Docker Desktop; the compose containers remain disposable development infrastructure and are not production deployment evidence.
 
 ## Backup and restore rehearsal
 
@@ -29,4 +29,4 @@ createdb my_crm_restore_check
 pg_restore --clean --if-exists --dbname="$RESTORE_DATABASE_URL" my-crm.backup
 ```
 
-After restore, run migrations in dry-run/rehearsal mode where supported, verify the Lead/Research/Research Job/Outreach/Activity/Import Batch objects, and execute the end-to-end scenario from `docs/IMPLEMENTATION_BLUEPRINT.md`. Store the dump outside Git and delete test credentials after the rehearsal.
+After restore, run migrations in dry-run/rehearsal mode where supported, verify the Lead/Research/Research Job/Outreach/Activity/Import Batch objects, and execute the end-to-end scenario from `docs/IMPLEMENTATION_BLUEPRINT.md`. A disposable custom-format dump/restore rehearsal passed on 2026-09-11. Store the dump outside Git and delete test credentials after the rehearsal.

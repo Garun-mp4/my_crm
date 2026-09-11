@@ -7,6 +7,8 @@ import { type MetadataValidationErrorResponse } from 'twenty-shared/metadata';
 import { type FileFolder } from 'twenty-shared/types';
 import { pascalCase } from 'twenty-shared/utils';
 
+import { toResourcePath } from '@/cli/utilities/file/to-resource-path';
+
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -265,7 +267,7 @@ export class FileApi {
         variables: {
           file: null,
           applicationUniversalIdentifier,
-          filePath: builtHandlerPath,
+          filePath: toResourcePath(builtHandlerPath),
           fileFolder: graphqlEnumFileFolder,
         },
       });
@@ -342,15 +344,16 @@ export class FileApi {
       }
     `;
 
+    const normalizedFiles = files.map(({ fileFolder, filePath, size }) => ({
+      fileFolder: pascalCase(fileFolder),
+      filePath: toResourcePath(filePath),
+      size,
+    }));
     return this.runMetadataMutation<CreateApplicationFileUploadsResult>({
       mutation,
       variables: {
         applicationUniversalIdentifier,
-        files: files.map(({ fileFolder, filePath, size }) => ({
-          fileFolder: pascalCase(fileFolder),
-          filePath,
-          size,
-        })),
+        files: normalizedFiles,
       },
       resultKey: 'createApplicationFileUploads',
       defaultErrorMessage: 'Failed to create application file uploads',

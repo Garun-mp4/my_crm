@@ -1,8 +1,19 @@
 import * as fs from 'node:fs';
+import { createRequire } from 'node:module';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { appDevOnce, appUninstall } from 'twenty-sdk/cli';
+import type {
+  appDevOnce as AppDevOnce,
+  appUninstall as AppUninstall,
+} from '../../../../../twenty-sdk/dist/cli/operations/index';
+
+const require = createRequire(import.meta.url);
+const { appDevOnce, appUninstall } =
+  require('../../../../../twenty-sdk/dist/operations.cjs') as {
+    appDevOnce: typeof AppDevOnce;
+    appUninstall: typeof AppUninstall;
+  };
 
 const APP_PATH = process.cwd();
 const CONFIG_DIR = path.join(os.homedir(), '.twenty');

@@ -4,6 +4,7 @@ import {
   readEdges,
   readProperty,
   readString,
+  toRichTextValue,
 } from '../shared/integrations/core-api';
 import { type LeadImportRow } from './lead-csv-import';
 
@@ -43,7 +44,7 @@ export const buildLeadImportData = (
   reviewCount: row.reviewCount,
   email: row.email,
   phone: row.phone,
-  notes: row.notes,
+  notes: toRichTextValue(row.notes),
   dedupeKey,
   websiteUrl: row.websiteUrl ? { primaryLinkUrl: row.websiteUrl } : undefined,
   directoryUrl: row.directoryUrl

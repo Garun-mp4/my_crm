@@ -53,6 +53,8 @@ The core list experience is provided by Twenty's server-backed object views. The
 
 CSV preview is pure validation plus a bounded workspace duplicate lookup. Commit requires an explicit confirmation flag, records a `Lead import batch`, writes only accepted non-duplicate rows, and stores created lead IDs and row-level errors. A human workspace member can soft-roll back a committed or partial batch by its batch ID. Export uses a stable column order and RFC-style escaping for commas, quotes, and line breaks. Every keyed command stores a deterministic payload hash; a retry with the same key and different payload returns `IDEMPOTENCY_CONFLICT`.
 
+The public tool contract keeps facts, notes, draft bodies, and job errors as strings. The Twenty adapter maps those values to the platform `RICH_TEXT` shape (`{ markdown }`) on writes and reads the Markdown projection back on reads, so transport semantics do not leak storage details.
+
 Research execution uses a replaceable adapter boundary. The checked-in `LOCAL_FIXTURE` adapter is deterministic and does not fetch or scrape external sites; it accepts a supplied observation, stores it as `AI_DRAFT`, and leaves the evidence in `REVIEW_REQUIRED`. A transient adapter failure moves the job to `FAILED` with a bounded exponential retry time. A worker or MCP caller must explicitly run or retry a job.
 
 ## Change rules

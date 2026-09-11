@@ -2,6 +2,7 @@ import { ApiService } from '@/cli/utilities/api/api-service';
 import { type ApplicationFileUploadRequest } from '@/cli/utilities/api/file-api';
 import { serializeError } from '@/cli/utilities/error/serialize-error';
 import { putFileToUploadUrl } from '@/cli/utilities/file/put-file-to-upload-url';
+import { toResourcePath } from '@/cli/utilities/file/to-resource-path';
 import * as fs from 'fs';
 import path, { relative } from 'path';
 import {
@@ -73,7 +74,7 @@ export class FileUploader {
   ): Promise<FileUploadFailure[]> {
     const builtPathByRelativePath = new Map<string, string>(
       batch.map(({ builtPath }) => [
-        relative(OUTPUT_DIR, builtPath),
+        toResourcePath(relative(OUTPUT_DIR, builtPath)),
         builtPath,
       ]),
     );
@@ -81,7 +82,7 @@ export class FileUploader {
     const uploadRequests: ApplicationFileUploadRequest[] = batch.map(
       ({ builtPath, fileFolder }) => ({
         fileFolder,
-        filePath: relative(OUTPUT_DIR, builtPath),
+        filePath: toResourcePath(relative(OUTPUT_DIR, builtPath)),
         size: fs.statSync(path.join(this.appPath, builtPath)).size,
       }),
     );
@@ -174,7 +175,7 @@ export class FileUploader {
     await this.runWithConcurrency(batch, async ({ builtPath, fileFolder }) => {
       const result = await this.apiService.uploadFile({
         filePath: path.join(this.appPath, builtPath),
-        builtHandlerPath: relative(OUTPUT_DIR, builtPath),
+        builtHandlerPath: toResourcePath(relative(OUTPUT_DIR, builtPath)),
         fileFolder,
         applicationUniversalIdentifier: this.applicationUniversalIdentifier,
       });
