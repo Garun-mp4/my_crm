@@ -6,6 +6,28 @@ This repository is based on Twenty `v2.39.0` and keeps the upstream history as a
 
 See `docs/IMPLEMENTATION_BLUEPRINT.md` for the accepted implementation contract and `docs/IMPLEMENTATION_STATUS.md` for the execution ledger.
 
+## CRM Docker startup
+
+From the repository root, build and start the complete local CRM stack:
+
+```powershell
+cd C:\dev\projects\web\CRM
+docker compose up -d --build
+```
+
+After the first build, `docker compose up -d` is enough. Open [http://localhost:3001](http://localhost:3001). The Compose stack runs PostgreSQL, Redis, the source-built Twenty server and worker, the frontend, and the automatic `My CRM` synchronization step. Host Node.js and Yarn are not required for the normal Docker workflow.
+
+Useful lifecycle commands:
+
+```powershell
+docker compose ps
+docker compose logs -f
+docker compose stop
+docker compose down
+```
+
+The named database and Redis volumes are preserved by `stop`, `start`, and `down`. Do not use `docker compose down -v` unless local data is intentionally being destroyed.
+
 <p align="center">
   <a href="https://www.twenty.com">
     <img src="./packages/twenty-website/public/images/core/logo.svg" width="100px" alt="Twenty logo" />

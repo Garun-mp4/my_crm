@@ -2,9 +2,12 @@
 # Dependency stages
 # ===========================================================================
 
-FROM node:24.19.0-alpine3.23@sha256:244cc2b53f46f9e876304391d17682b0ddae9ac33491f4857e25e35a36ba7995 AS front-deps
+FROM node:24.5.0-alpine3.21 AS front-deps
 
 WORKDIR /app
+
+RUN corepack enable
+ENV YARN_NETWORK_CONCURRENCY=4
 
 COPY ./package.json ./yarn.lock ./.yarnrc.yml ./tsconfig.base.json ./nx.json /app/
 COPY ./.yarn/releases /app/.yarn/releases
@@ -20,9 +23,12 @@ COPY ./packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
 RUN yarn workspaces focus twenty twenty-front twenty-front-component-renderer twenty-ui twenty-shared twenty-sdk twenty-client-sdk && yarn cache clean && npx nx reset
 
 
-FROM node:24.19.0-alpine3.23@sha256:244cc2b53f46f9e876304391d17682b0ddae9ac33491f4857e25e35a36ba7995 AS server-deps
+FROM node:24.5.0-alpine3.21 AS server-deps
 
 WORKDIR /app
+
+RUN corepack enable
+ENV YARN_NETWORK_CONCURRENCY=4
 
 COPY ./package.json ./yarn.lock ./.yarnrc.yml ./tsconfig.base.json ./nx.json /app/
 COPY ./.yarn/releases /app/.yarn/releases
@@ -61,12 +67,15 @@ RUN yarn workspaces focus --production twenty-emails twenty-shared twenty-client
 
 FROM front-deps AS twenty-front-build
 
+ARG FRONTEND_SERVER_URL=http://localhost:3000
+
 COPY ./packages/twenty-front /app/packages/twenty-front
 COPY ./packages/twenty-front-component-renderer /app/packages/twenty-front-component-renderer
 COPY ./packages/twenty-ui /app/packages/twenty-ui
 COPY ./packages/twenty-shared /app/packages/twenty-shared
 COPY ./packages/twenty-sdk /app/packages/twenty-sdk
 COPY ./packages/twenty-client-sdk /app/packages/twenty-client-sdk
+RUN printf 'REACT_APP_SERVER_BASE_URL=%s\nVITE_BUILD_SOURCEMAP=false\n' "$FRONTEND_SERVER_URL" > /app/packages/twenty-front/.env.production
 RUN npx nx run twenty-front:lingui:extract && \
     npx nx run twenty-front:lingui:compile
 # To skip the memory-intensive frontend build, pre-build on the host:
@@ -75,8 +84,47 @@ RUN npx nx run twenty-front:lingui:extract && \
 RUN if [ -d /app/packages/twenty-front/build ]; then \
       echo "Using pre-built frontend from host"; \
     else \
-      NODE_OPTIONS="--max-old-space-size=8192" npx nx build twenty-front; \
+      NODE_OPTIONS="--max-old-space-size=2048" npx nx build twenty-front; \
     fi
+# The browser cannot resolve Docker-internal service names. Bake the public
+# backend URL into the static frontend runtime config so the app does not
+# fall back to the frontend origin (localhost:3001).
+RUN cd /app/packages/twenty-front && \
+    REACT_APP_SERVER_BASE_URL="$FRONTEND_SERVER_URL" \
+    sh scripts/inject-runtime-env.sh
+
+
+# ===========================================================================
+# Target: twenty-sdk-build (CLI + SDK artifacts used by My CRM sync)
+# ===========================================================================
+
+FROM front-deps AS twenty-sdk-build
+
+COPY ./packages/twenty-ui /app/packages/twenty-ui
+COPY ./packages/twenty-shared /app/packages/twenty-shared
+COPY ./packages/twenty-client-sdk /app/packages/twenty-client-sdk
+COPY ./packages/twenty-sdk /app/packages/twenty-sdk
+
+RUN npx nx build twenty-sdk --skip-nx-cache
+
+
+# ===========================================================================
+# Target: my-crm-deps (isolated dependencies for the internal app)
+# ===========================================================================
+
+FROM node:24.5.0-alpine3.21 AS my-crm-deps
+
+WORKDIR /opt/my-crm
+
+RUN corepack enable
+ENV YARN_NETWORK_CONCURRENCY=4
+
+COPY ./packages/twenty-apps/internal/my-crm/package.json /opt/my-crm/package.json
+COPY ./packages/twenty-apps/internal/my-crm/yarn.lock /opt/my-crm/yarn.lock
+COPY ./.yarnrc.yml /opt/my-crm/.yarnrc.yml
+COPY ./.yarn/releases/yarn-4.13.0.cjs /opt/my-crm/.yarn/releases/yarn-4.13.0.cjs
+
+RUN yarn install --immutable
 
 
 # ===========================================================================
@@ -84,19 +132,14 @@ RUN if [ -d /app/packages/twenty-front/build ]; then \
 #   docker build --target twenty-server -f packages/twenty-docker/twenty/Dockerfile .
 # ===========================================================================
 
-FROM node:24.19.0-alpine3.23@sha256:244cc2b53f46f9e876304391d17682b0ddae9ac33491f4857e25e35a36ba7995 AS twenty-server
+FROM node:24.5.0-alpine3.21 AS twenty-server
 
 # Force the patched Alpine OpenSSL libs to the fixed release (3.5.8-r0 clears
 # CVE-2026-14456/14457/18798/54874/63072/63075/63076). Node bundles its own
 # OpenSSL, but psql/curl link these system libs, so the upgrade hardens
 # runtime TLS and clears the scanner.
-RUN apk add --no-cache \
-    'curl>=8.20.0-r0' \
-    'nghttp2-libs>=1.69.0-r0' \
-    'libcrypto3>=3.5.8-r0' \
-    'libssl3>=3.5.8-r0' \
-    'postgresql18-client>=18.5-r0' \
-    jq
+RUN apk add --no-cache curl nghttp2-libs postgresql16-client jq
+RUN corepack enable
 
 COPY ./packages/twenty-docker/twenty/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
@@ -129,6 +172,8 @@ COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-emails/package
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-emails/dist /app/packages/twenty-emails/dist
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
 COPY --chown=1000 --from=twenty-server-build /app/packages/twenty-client-sdk/dist /app/packages/twenty-client-sdk/dist
+COPY packages/twenty-docker/scripts/crm-db-init.sh /app/scripts/crm-db-init.sh
+RUN chmod +x /app/scripts/crm-db-init.sh
 
 LABEL org.opencontainers.image.source=https://github.com/twentyhq/twenty
 LABEL org.opencontainers.image.description="Twenty server image (no frontend)."
@@ -143,13 +188,9 @@ LABEL org.opencontainers.image.description="Twenty server image (no frontend)."
 #  - the Node dev headers: only node-gyp needs them and native addons are
 #    compiled in the build stages; their vendored openssl/opensslv.h is what
 #    scanners fingerprint whenever OpenSSL patches ahead of Node releases.
-# The pinned node:24.19.0-alpine base carries the July 2026 security fixes
-# (CVE-2026-56846/56848/58043, all fixed in 24.18.1) plus the 24.18.0 fix for
-# the http.Agent keep-alive regression (nodejs/node#64004) that flooded prod
-# with false "Premature close" fetch failures on 24.17.0 (see #22671/#22673).
-# Do not pin below 24.18.0 again.
-# Keep the base current when Node ships 24.x security releases — the scanner
-# flags the statically-linked node binary itself.
+# Node 24.5.0 is the version fixed by this repository's engine contract.
+# Keep this base aligned with the host development version until the project
+# intentionally upgrades that contract.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
       /usr/local/include/node && \
     find /app/node_modules -type d -name example -prune -exec rm -rf {} +
@@ -185,6 +226,49 @@ FROM twenty-server AS twenty
 COPY --chown=1000 --from=twenty-front-build /app/packages/twenty-front/build /app/packages/twenty-server/dist/front
 
 LABEL org.opencontainers.image.description="Twenty image with backend and frontend."
+
+
+# ===========================================================================
+# Target: twenty-front (static frontend served by nginx)
+# ===========================================================================
+
+FROM nginx:1.27-alpine AS twenty-front
+
+COPY --from=twenty-front-build /app/packages/twenty-front/build /usr/share/nginx/html
+COPY packages/twenty-docker/twenty/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+
+# ===========================================================================
+# Target: my-crm-sync (one-shot application build and metadata sync)
+# ===========================================================================
+
+FROM node:24.5.0-alpine3.21 AS my-crm-sync
+
+WORKDIR /app
+
+RUN corepack enable
+
+COPY --from=twenty-sdk-build /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/
+COPY --from=twenty-sdk-build /app/tsconfig.base.json /app/nx.json /app/
+COPY --from=twenty-sdk-build /app/.yarn /app/.yarn
+COPY --from=twenty-sdk-build /app/node_modules /app/node_modules
+COPY --from=twenty-sdk-build /app/packages/twenty-ui/package.json /app/packages/twenty-ui/
+COPY --from=twenty-sdk-build /app/packages/twenty-ui/dist /app/packages/twenty-ui/dist
+COPY --from=twenty-sdk-build /app/packages/twenty-shared/package.json /app/packages/twenty-shared/
+COPY --from=twenty-sdk-build /app/packages/twenty-shared/dist /app/packages/twenty-shared/dist
+COPY --from=twenty-sdk-build /app/packages/twenty-client-sdk/package.json /app/packages/twenty-client-sdk/
+COPY --from=twenty-sdk-build /app/packages/twenty-client-sdk/dist /app/packages/twenty-client-sdk/dist
+COPY --from=twenty-sdk-build /app/packages/twenty-sdk/package.json /app/packages/twenty-sdk/
+COPY --from=twenty-sdk-build /app/packages/twenty-sdk/dist /app/packages/twenty-sdk/dist
+COPY ./packages/twenty-apps/internal/my-crm /app/packages/twenty-apps/internal/my-crm
+COPY --from=my-crm-deps /opt/my-crm/node_modules /app/packages/twenty-apps/internal/my-crm/node_modules
+COPY packages/twenty-docker/scripts/sync-my-crm.mjs /app/scripts/sync-my-crm.mjs
+
+RUN node packages/twenty-sdk/dist/cli.cjs dev:build packages/twenty-apps/internal/my-crm
+
+ENTRYPOINT ["node", "/app/scripts/sync-my-crm.mjs"]
 
 
 # ===========================================================================
@@ -224,7 +308,7 @@ RUN S6_ARCH=$(cat /tmp/s6arch) && \
     echo "$NOARCH_SUM  s6-overlay-noarch.tar.xz" | sha256sum -c - && \
     echo "$ARCH_SUM  s6-overlay-arch.tar.xz" | sha256sum -c -
 
-FROM node:24.19.0-alpine3.23@sha256:244cc2b53f46f9e876304391d17682b0ddae9ac33491f4857e25e35a36ba7995 AS twenty-app-dev
+FROM node:24.5.0-alpine3.21 AS twenty-app-dev
 
 # s6-overlay
 COPY --from=s6-fetch /tmp/s6-overlay-noarch.tar.xz /tmp/
@@ -235,12 +319,8 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
 
 # See twenty-server above: patched Alpine OpenSSL libs (psql/curl/redis link
 # these system libs; Node bundles its own).
-RUN apk add --no-cache \
-    postgresql18 postgresql18-contrib \
-    redis \
-    'libcrypto3>=3.5.8-r0' \
-    'libssl3>=3.5.8-r0' \
-    'curl>=8.20.0-r0' jq su-exec
+RUN apk add --no-cache postgresql16 postgresql16-contrib redis curl jq su-exec \
+ && corepack enable
 
 # Workspace root config
 COPY --from=twenty-server-build /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/

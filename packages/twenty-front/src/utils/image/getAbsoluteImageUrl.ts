@@ -5,7 +5,17 @@ import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
 export const getAbsoluteImageUrl = (
   imageUrl?: string | null,
-): string | undefined =>
-  isNonEmptyString(imageUrl)
-    ? getImageAbsoluteURI({ imageUrl, baseUrl: REACT_APP_SERVER_BASE_URL })
-    : undefined;
+): string | undefined => {
+  if (!isNonEmptyString(imageUrl)) {
+    return undefined;
+  }
+
+  if (imageUrl.startsWith('/images/')) {
+    return `${window.location.origin}${imageUrl}`;
+  }
+
+  return getImageAbsoluteURI({
+    imageUrl,
+    baseUrl: REACT_APP_SERVER_BASE_URL,
+  });
+};

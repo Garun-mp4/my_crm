@@ -1,5 +1,38 @@
 .git
+.gitignore
 .env
+**/.env
 **/node_modules
-.nx/cache
-packages/twenty-server/.env
+**/.twenty
+**/.local-storage
+**/dist
+**/build
+# This is source code, not generated output. The SDK build plugin copies the
+# checked-in cover asset from this directory during the Docker build.
+!packages/twenty-sdk/src/cli/utilities/build
+!packages/twenty-sdk/src/cli/utilities/build/**
+!packages/twenty-sdk/src/front-component-renderer/build
+!packages/twenty-sdk/src/front-component-renderer/build/**
+**/coverage
+**/test-results
+**/playwright-report
+**/screenshots
+**/logs
+**/.nx
+.nx
+.cache
+.swc
+.oxlintcache
+*.log
+*.tmp
+*.bak
+*.dump
+*.sql.gz
+.DS_Store
+Thumbs.db
+
+# Keep the Yarn runtime and committed patches needed for immutable installs.
+.yarn/*
+!.yarn/releases
+!.yarn/patches
+!.yarn/plugins

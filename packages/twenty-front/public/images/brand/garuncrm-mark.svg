@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">GarunCRM</title>
+  <desc id="desc">GarunCRM logo</desc>
+  <defs>
+    <linearGradient id="surface" x1="24" y1="24" x2="232" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F2937" />
+      <stop offset="1" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="accent" x1="72" y1="65" x2="194" y2="194" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBBF24" />
+      <stop offset="1" stop-color="#F97316" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="64" fill="url(#surface)" />
+  <path d="M183 83.5A72 72 0 1 0 190.2 160" fill="none" stroke="url(#accent)" stroke-linecap="round" stroke-width="24" />
+  <path d="M187 128h-47" fill="none" stroke="#FBBF24" stroke-linecap="round" stroke-width="24" />
+  <circle cx="191" cy="128" r="12" fill="#F97316" />
+</svg>
