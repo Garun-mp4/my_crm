@@ -1,7 +1,7 @@
 # Implementation status
 
 Last updated: 2026-09-11
-Branch: `codex/crm-implementation`
+Branch: `main`
 Base: `twenty/v2.39.0` (`92359d5a70dee70f4084ddc98e0de0f7685cf358`)
 
 ## Working agreement
