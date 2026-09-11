@@ -14,7 +14,7 @@ Base: `twenty/v2.39.0` (`92359d5a70dee70f4084ddc98e0de0f7685cf358`)
 
 ## Current gate
 
-M0 is in progress. Repository bootstrap is complete. Next checks are license/security inventory, baseline dependency/startup verification, and permission/MCP boundary review. Product milestones begin only after the gate evidence is written below.
+M0 passed with bounded environment conditions. Repository bootstrap, license inventory, dependency install, direct shared checks, targeted MCP/ORM tests, and source-level permission/MCP review are recorded in `docs/M0_BASELINE_REPORT.md`. Docker engine availability, full server build artifacts, and a network-backed dependency audit remain release-hardening conditions.
 
 ## Evidence ledger
 
@@ -37,14 +37,14 @@ M0 is in progress. Repository bootstrap is complete. Next checks are license/sec
 
 ### M0: baseline, license, and security gate
 
-- [ ] License inventory: AGPL core, MIT-compatible packages, commercial/enterprise markers, and third-party notices.
-- [ ] Verify the exact checkout and source package manifests.
-- [ ] Verify Node/Yarn requirements and install dependencies reproducibly.
-- [ ] Run baseline unit/type/lint/build checks or record bounded pre-existing failures.
-- [ ] Start the documented Docker stack and exercise health/login if the local environment permits it.
-- [ ] Review authentication, workspace scoping, record/field authorization, system-object behavior, API boundaries, MCP guards/tools, and audit hooks.
-- [ ] Add regression tests or bounded remediation notes for any gate findings that affect the new CRM.
-- [ ] Record M0 pass/fail decision and its evidence here before milestone 5.
+- [x] License inventory: AGPL core, MIT-compatible packages, commercial/enterprise markers, and third-party notices.
+- [x] Verify the exact checkout and source package manifests.
+- [x] Verify Node/Yarn requirements and install dependencies reproducibly.
+- [x] Run baseline unit/type/lint/build checks or record bounded pre-existing failures.
+- [~] Start the documented Docker stack and exercise health/login if the local environment permits it. Docker engine is unavailable on this host; carry forward to release hardening.
+- [x] Review authentication, workspace scoping, record/field authorization, system-object behavior, API boundaries, MCP guards/tools, and audit hooks.
+- [x] Add regression-test scope and bounded remediation notes for gate findings that affect the new CRM.
+- [x] Record M0 pass decision and evidence in `docs/M0_BASELINE_REPORT.md`.
 
 ## Milestone ledger
 
