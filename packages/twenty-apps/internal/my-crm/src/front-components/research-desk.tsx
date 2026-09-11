@@ -108,27 +108,54 @@ const loadLeads = async (after?: string): Promise<LeadPage> => {
 const countLeads = async (
   filter?: Record<string, unknown>,
 ): Promise<number> => {
-  const response: unknown = await new CoreApiClient().query({
-    leads: {
-      __args: {
-        first: 1,
-        ...(filter ? { filter } : {}),
+  let after: string | undefined;
+  let total = 0;
+
+  for (let page = 0; page < 100; page += 1) {
+    const response: unknown = await new CoreApiClient().query({
+      leads: {
+        __args: {
+          first: 200,
+          ...(after ? { after } : {}),
+          ...(filter ? { filter } : {}),
+        },
+        edges: { node: { id: true } },
+        pageInfo: { hasNextPage: true, endCursor: true },
       },
-      edges: { node: { id: true } },
-      totalCount: true,
-    },
-  });
+    });
 
-  if (!isRecord(response) || !isRecord(response.leads)) {
-    throw new Error('Lead count response is invalid.');
+    if (!isRecord(response) || !isRecord(response.leads)) {
+      throw new Error('Lead count response is invalid.');
+    }
+
+    const edges = response.leads.edges;
+    if (!Array.isArray(edges)) {
+      throw new Error('Lead count edges were not returned by the server.');
+    }
+
+    total += edges.filter(
+      (edge) =>
+        isRecord(edge) &&
+        isRecord(edge.node) &&
+        typeof edge.node.id === 'string',
+    ).length;
+
+    const pageInfo = isRecord(response.leads.pageInfo)
+      ? response.leads.pageInfo
+      : undefined;
+    const hasNextPage = pageInfo?.hasNextPage === true;
+    const nextCursor =
+      typeof pageInfo?.endCursor === 'string' ? pageInfo.endCursor : undefined;
+
+    if (!hasNextPage || !nextCursor) return total;
+    if (nextCursor === after) {
+      throw new Error('Lead count pagination did not advance.');
+    }
+
+    after = nextCursor;
   }
 
-  const totalCount = response.leads.totalCount;
-  if (typeof totalCount !== 'number') {
-    throw new Error('Lead count was not returned by the server.');
-  }
-
-  return totalCount;
+  throw new Error('Lead count pagination exceeded the safety limit.');
 };
 
 const loadSummary = async (): Promise<LeadSummary> => {
