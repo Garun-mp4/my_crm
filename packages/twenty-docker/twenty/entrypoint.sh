@@ -7,6 +7,16 @@ setup_and_migrate_db() {
         return
     fi
 
+    # The Compose bootstrap service is kept alive so Docker Desktop's
+    # `compose start` can start the complete application again after a stop.
+    # Once its initialization marker exists, avoid rerunning the expensive
+    # migration/upgrade path on every ordinary stop/start cycle. A recreated
+    # container has no marker and performs the full initialization again.
+    if [ "${PERSISTENT_DB_INIT:-false}" = "true" ] && [ -f /tmp/crm-db-init-ready ]; then
+        echo "Database initialization already completed, skipping..."
+        return
+    fi
+
     echo "Running database setup and migrations..."
 
     # Run setup and migration scripts

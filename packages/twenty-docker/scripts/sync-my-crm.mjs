@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -10,9 +10,24 @@ const serverUrl = (process.env.TWENTY_SERVER_URL ?? 'http://server:3000').replac
 const origin = process.env.TWENTY_SYNC_ORIGIN ?? 'http://localhost:3001';
 const email = process.env.TWENTY_SYNC_EMAIL ?? 'tim@apple.dev';
 const password = process.env.TWENTY_SYNC_PASSWORD ?? 'tim@apple.dev';
+const readyFile = process.env.TWENTY_SYNC_READY_FILE ?? '/tmp/my-crm-sync-ready';
 
 const sleep = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+const fileExists = async (filePath) => {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const keepAlive = () =>
+  new Promise(() => {
+    setInterval(() => {}, 2_147_483_647);
+  });
 
 const postMetadata = async (query, variables) => {
   const response = await fetch(`${serverUrl}/metadata`, {
@@ -176,8 +191,15 @@ const runApply = () =>
     });
   });
 
+if (await fileExists(readyFile)) {
+  console.log('My CRM metadata is already synchronized for this container.');
+  await keepAlive();
+}
+
 await waitForServer();
 const accessToken = await waitForAccessToken();
 await writeRemoteConfig(accessToken);
 await runApply();
+await writeFile(readyFile, `${new Date().toISOString()}\n`, 'utf8');
 console.log('My CRM metadata synchronization completed.');
+await keepAlive();

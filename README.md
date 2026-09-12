@@ -28,6 +28,8 @@ docker compose down
 
 The named database and Redis volumes are preserved by `stop`, `start`, and `down`. Do not use `docker compose down -v` unless local data is intentionally being destroyed.
 
+Docker Desktop's play button can be used after `docker compose up` or `docker compose stop`. The database initialization and `My CRM` synchronization services remain as healthy, restartable containers so the complete stack can be started again without manually running a separate sync command. After `docker compose down`, use `docker compose up -d` once to recreate the containers before using the play button again.
+
 <p align="center">
   <a href="https://www.twenty.com">
     <img src="./packages/twenty-website/public/images/core/logo.svg" width="100px" alt="Twenty logo" />
