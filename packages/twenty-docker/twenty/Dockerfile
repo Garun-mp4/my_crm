@@ -265,6 +265,7 @@ COPY --from=twenty-sdk-build /app/packages/twenty-sdk/dist /app/packages/twenty-
 COPY ./packages/twenty-apps/internal/my-crm /app/packages/twenty-apps/internal/my-crm
 COPY --from=my-crm-deps /opt/my-crm/node_modules /app/packages/twenty-apps/internal/my-crm/node_modules
 COPY packages/twenty-docker/scripts/sync-my-crm.mjs /app/scripts/sync-my-crm.mjs
+COPY packages/twenty-docker/scripts/run-lead-tracker-sync.mjs /app/scripts/run-lead-tracker-sync.mjs
 
 RUN node packages/twenty-sdk/dist/cli.cjs dev:build packages/twenty-apps/internal/my-crm
 

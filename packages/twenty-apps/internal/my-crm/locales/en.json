@@ -1,0 +1,92 @@
+{
+  "25 records per page · server cursor": "25 records per page · server cursor",
+  "A quiet workspace for turning public business evidence into a short, reviewable path to a thoughtful first message.": "A quiet workspace for turning public business evidence into a short, reviewable path to a thoughtful first message.",
+  "All leads": "All leads",
+  "Contacted": "Contacted",
+  "Do not contact": "Do not contact",
+  "Draft ready": "Draft ready",
+  "Duplicate": "Duplicate",
+  "Evidence remains separate from generated copy. Drafts can be prepared by tools, but only a workspace member can approve an outreach draft, and this dashboard never sends one.": "Evidence remains separate from generated copy. Drafts can be prepared by tools, but only a workspace member can approve an outreach draft, and this dashboard never sends one.",
+  "GarunCRM / lead research": "GarunCRM / lead research",
+  "High": "High",
+  "In research": "In research",
+  "Lead summary": "Lead summary",
+  "Load next page": "Load next page",
+  "Loading the lead queue…": "Loading the lead queue…",
+  "Loading…": "Loading…",
+  "Lost": "Lost",
+  "Meeting": "Meeting",
+  "Needs attention": "Needs attention",
+  "New": "New",
+  "No leads yet. Start with a directory card and preserve the evidence that led to the lead.": "No leads yet. Start with a directory card and preserve the evidence that led to the lead.",
+  "Normal": "Normal",
+  "Qualified": "Qualified",
+  "Recent lead desk": "Recent lead desk",
+  "Recent leads": "Recent leads",
+  "Replied": "Replied",
+  "Research desk": "Research desk",
+  "Researched": "Researched",
+  "Researching": "Researching",
+  "Unable to load leads. Check access to the current workspace.": "Unable to load leads. Check access to the current workspace.",
+  "Unable to load the next page.": "Unable to load the next page.",
+  "Urgent": "Urgent",
+  "Won": "Won",
+  "fieldMetadata.label": {
+    "Activity history": "Activity history",
+    "Lead": "Lead",
+    "Outreach drafts": "Outreach drafts",
+    "Research evidence": "Research evidence",
+    "Research jobs": "Research jobs"
+  },
+  "navigationMenuItem.name": {
+    "Activity history": "Activity history",
+    "Administration": "Administration",
+    "Import batches": "Import batches",
+    "Leads": "Leads",
+    "Outreach drafts": "Outreach drafts",
+    "Research desk": "Research desk",
+    "Research jobs": "Research jobs",
+    "Research queue": "Research queue"
+  },
+  "objectMetadata.description": {
+    "A business prospect researched for a potential website project.": "A business prospect researched for a potential website project.",
+    "A human-reviewed message draft. Sending is always external and manual.": "A human-reviewed message draft. Sending is always external and manual.",
+    "A retryable, auditable local or provider-backed research execution.": "A retryable, auditable local or provider-backed research execution.",
+    "A reviewable and reversible CSV/XLSX-to-lead import attempt.": "A reviewable and reversible CSV/XLSX-to-lead import attempt.",
+    "A source-backed observation attached to a lead.": "A source-backed observation attached to a lead.",
+    "An auditable event in the lead research and outreach workflow.": "An auditable event in the lead research and outreach workflow."
+  },
+  "objectMetadata.labelPlural": {
+    "CRM activities": "CRM activities",
+    "Lead import batches": "Lead import batches",
+    "Leads": "Leads",
+    "Outreach drafts": "Outreach drafts",
+    "Research evidence": "Research evidence",
+    "Research jobs": "Research jobs"
+  },
+  "objectMetadata.labelSingular": {
+    "CRM activity": "CRM activity",
+    "Lead": "Lead",
+    "Lead import batch": "Lead import batch",
+    "Outreach draft": "Outreach draft",
+    "Research item": "Research item",
+    "Research job": "Research job"
+  },
+  "pageLayout.name": {
+    "Research desk": "Research desk"
+  },
+  "pageLayoutTab.title": {
+    "Research desk": "Research desk"
+  },
+  "pageLayoutWidget.title": {
+    "Research desk": "Research desk"
+  },
+  "view.name": {
+    "Activity history": "Activity history",
+    "Import batches": "Import batches",
+    "Lead desk": "Lead desk",
+    "Outreach drafts": "Outreach drafts",
+    "Research jobs": "Research jobs",
+    "Research queue": "Research queue"
+  }
+}

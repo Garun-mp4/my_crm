@@ -29,6 +29,8 @@ export const commitLeadImportSchema = z.object({
   confirm: z.literal(true),
 });
 
+export const syncLeadTrackerSchema = commitLeadImportSchema;
+
 export const rollbackLeadImportSchema = z.object({
   batchId: z.string().uuid(),
   confirm: z.literal(true),
@@ -136,6 +138,7 @@ export type ListLeadsPayload = z.infer<typeof listLeadsSchema>;
 export type TransitionLeadPayload = z.infer<typeof transitionLeadSchema>;
 export type PreviewLeadImportPayload = z.infer<typeof previewLeadImportSchema>;
 export type CommitLeadImportPayload = z.infer<typeof commitLeadImportSchema>;
+export type SyncLeadTrackerPayload = z.infer<typeof syncLeadTrackerSchema>;
 export type RollbackLeadImportPayload = z.infer<
   typeof rollbackLeadImportSchema
 >;

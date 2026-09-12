@@ -1,7 +1,9 @@
 import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMemberState';
 import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
+import { useNavigationObjectMetadataItems } from '@/navigation-menu-item/common/hooks/useNavigationObjectMetadataItems';
 import { navigationMenuItemsDraftState } from '@/navigation-menu-item/common/states/navigationMenuItemsDraftState';
 import { filterWorkspaceNavigationMenuItems } from '@/navigation-menu-item/common/utils/filterWorkspaceNavigationMenuItems';
+import { filterGarunCrmWorkspaceNavigationMenuItems } from '@/navigation-menu-item/common/utils/filterGarunCrmWorkspaceNavigationMenuItems';
 import { navigationMenuItemsSelector } from '@/navigation-menu-item/common/states/navigationMenuItemsSelector';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 
@@ -25,6 +27,7 @@ export const useNavigationMenuItemsData = (): NavigationMenuItemsData => {
   const navigationMenuItemsDraft = useAtomStateValue(
     navigationMenuItemsDraftState,
   );
+  const objectMetadataItems = useNavigationObjectMetadataItems();
 
   const userNavigationMenuItems = navigationMenuItems.filter((item) =>
     isDefined(item.userWorkspaceId),
@@ -38,9 +41,16 @@ export const useNavigationMenuItemsData = (): NavigationMenuItemsData => {
       ? navigationMenuItemsDraft
       : workspaceNavigationMenuItemsFromState;
 
+  const visibleWorkspaceNavigationMenuItems =
+    filterGarunCrmWorkspaceNavigationMenuItems({
+      items: workspaceNavigationMenuItems,
+      objectMetadataItems,
+      isLayoutCustomizationModeEnabled,
+    });
+
   return {
     navigationMenuItems: userNavigationMenuItems,
-    workspaceNavigationMenuItems,
+    workspaceNavigationMenuItems: visibleWorkspaceNavigationMenuItems,
     currentWorkspaceMemberId,
     currentUserWorkspaceId:
       currentWorkspaceMember?.userWorkspaceId ?? undefined,

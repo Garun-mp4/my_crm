@@ -136,6 +136,14 @@ services:
       TWENTY_SYNC_ORIGIN: http://localhost:3001
       TWENTY_SYNC_EMAIL: ${TWENTY_SYNC_EMAIL:-tim@apple.dev}
       TWENTY_SYNC_PASSWORD: ${TWENTY_SYNC_PASSWORD:-tim@apple.dev}
+    volumes:
+      # Keep the one-shot sync on the current checked-out app source even when
+      # the existing image predates a source-only change. A rebuild still
+      # produces a self-contained image for clean machines.
+      - ./packages/twenty-apps/internal/my-crm/src:/app/packages/twenty-apps/internal/my-crm/src:ro
+      - ./packages/twenty-apps/internal/my-crm/locales:/app/packages/twenty-apps/internal/my-crm/locales:ro
+      - ./packages/twenty-docker/scripts/sync-my-crm.mjs:/app/scripts/sync-my-crm.mjs:ro
+      - ./packages/twenty-docker/scripts/run-lead-tracker-sync.mjs:/app/scripts/run-lead-tracker-sync.mjs:ro
     depends_on:
       server:
         condition: service_healthy

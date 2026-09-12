@@ -5,7 +5,7 @@ export const APPLICATION_UNIVERSAL_IDENTIFIER =
 
 export default defineApplication({
   universalIdentifier: APPLICATION_UNIVERSAL_IDENTIFIER,
-  displayName: 'My CRM',
+  displayName: 'GarunCRM',
   description:
     'A human-approved lead research desk for website prospecting and outreach preparation.',
 });

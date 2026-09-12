@@ -129,6 +129,14 @@ export default defineObject({
       isNullable: true,
     },
     {
+      universalIdentifier: '8e93fb75-e6f7-4456-9b12-223344556677',
+      type: FieldType.RAW_JSON,
+      name: 'updatedLeadIds',
+      label: 'Updated lead ids',
+      icon: 'IconListDetails',
+      isNullable: true,
+    },
+    {
       universalIdentifier: '4e92be64-d5e6-4345-8a01-001122334455',
       type: FieldType.RAW_JSON,
       name: 'errorReport',

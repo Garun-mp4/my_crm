@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { CoreApiClient } from 'twenty-client-sdk/core';
 import { defineFrontComponent } from 'twenty-sdk/define';
+import { useTranslate } from 'twenty-sdk/front-component';
 
 export const RESEARCH_DESK_FRONT_COMPONENT_ID =
   '4ab5ef26-0637-4845-b123-223344556678';
@@ -169,8 +170,30 @@ const loadSummary = async (): Promise<LeadSummary> => {
   return { total, researching, ready, needsAttention };
 };
 
-const statusLabel = (status: string): string =>
-  status.toLocaleLowerCase('en-US').replaceAll('_', ' ');
+const statusLabel = (
+  status: string,
+  t: (message: string) => string,
+): string => {
+  const labels: Record<string, string> = {
+    NEW: t('New'),
+    RESEARCHING: t('Researching'),
+    RESEARCHED: t('Researched'),
+    QUALIFIED: t('Qualified'),
+    DRAFT_READY: t('Draft ready'),
+    CONTACTED: t('Contacted'),
+    REPLIED: t('Replied'),
+    MEETING: t('Meeting'),
+    WON: t('Won'),
+    LOST: t('Lost'),
+    DUPLICATE: t('Duplicate'),
+    DO_NOT_CONTACT: t('Do not contact'),
+    NORMAL: t('Normal'),
+    HIGH: t('High'),
+    URGENT: t('Urgent'),
+  };
+
+  return labels[status] ?? status.toLocaleLowerCase('en-US').replaceAll('_', ' ');
+};
 
 const statusColor = (status: string): string => {
   if (
@@ -325,6 +348,7 @@ const styles: Record<string, CSSProperties> = {
 };
 
 const ResearchDesk = () => {
+  const { t } = useTranslate();
   const [state, setState] = useState<LoadingState>({ kind: 'loading' });
 
   useEffect(() => {
@@ -344,15 +368,16 @@ const ResearchDesk = () => {
         if (!cancelled)
           setState({
             kind: 'error',
-            message:
-              'Не удалось загрузить лиды. Проверьте доступ к рабочему пространству.',
+            message: t(
+              'Unable to load leads. Check access to the current workspace.',
+            ),
           });
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const loadNextPage = async () => {
     if (state.kind !== 'ready' || !state.nextCursor || state.loadingMore)
@@ -377,7 +402,7 @@ const ResearchDesk = () => {
           ? {
               ...current,
               loadingMore: false,
-              loadMoreError: 'Не удалось загрузить следующую страницу.',
+              loadMoreError: t('Unable to load the next page.'),
             }
           : current,
       );
@@ -392,22 +417,23 @@ const ResearchDesk = () => {
   return (
     <main style={styles.root} aria-labelledby="research-desk-title">
       <header style={styles.header}>
-        <p style={styles.eyebrow}>My CRM / lead research</p>
+        <p style={styles.eyebrow}>{t('GarunCRM / lead research')}</p>
         <h1 id="research-desk-title" style={styles.title}>
-          Research desk
+          {t('Research desk')}
         </h1>
         <p style={styles.lede}>
-          A quiet workspace for turning public business evidence into a short,
-          reviewable path to a thoughtful first message.
+          {t(
+            'A quiet workspace for turning public business evidence into a short, reviewable path to a thoughtful first message.',
+          )}
         </p>
       </header>
 
-      <section style={styles.grid} aria-label="Lead summary">
+      <section style={styles.grid} aria-label={t('Lead summary')}>
         {[
-          ['All leads', summary.total, colors.surface],
-          ['In research', summary.researching, colors.lavender],
-          ['Draft ready', summary.ready, colors.mint],
-          ['Needs attention', summary.needsAttention, colors.peach],
+          [t('All leads'), summary.total, colors.surface],
+          [t('In research'), summary.researching, colors.lavender],
+          [t('Draft ready'), summary.ready, colors.mint],
+          [t('Needs attention'), summary.needsAttention, colors.peach],
         ].map(([label, value, background]) => (
           <article
             key={String(label)}
@@ -422,14 +448,16 @@ const ResearchDesk = () => {
       <section style={styles.panel} aria-labelledby="recent-leads-title">
         <header style={styles.panelHeader}>
           <h2 id="recent-leads-title" style={styles.panelTitle}>
-            Recent lead desk
+            {t('Recent lead desk')}
           </h2>
-          <p style={styles.panelMeta}>25 records per page · server cursor</p>
+          <p style={styles.panelMeta}>
+            {t('25 records per page · server cursor')}
+          </p>
         </header>
 
         {state.kind === 'loading' && (
           <p style={styles.empty} role="status">
-            Loading the lead queue…
+            {t('Loading the lead queue…')}
           </p>
         )}
         {state.kind === 'error' && (
@@ -439,12 +467,13 @@ const ResearchDesk = () => {
         )}
         {state.kind === 'ready' && state.rows.length === 0 && (
           <p style={styles.empty}>
-            No leads yet. Start with a directory card and preserve the evidence
-            that led to the lead.
+            {t(
+              'No leads yet. Start with a directory card and preserve the evidence that led to the lead.',
+            )}
           </p>
         )}
         {state.kind === 'ready' && state.rows.length > 0 && (
-          <div style={styles.list} role="table" aria-label="Recent leads">
+          <div style={styles.list} role="table" aria-label={t('Recent leads')}>
             {state.rows.map((row) => (
               <div key={row.id} style={styles.row} role="row">
                 <span style={styles.rowName} role="cell">
@@ -457,13 +486,13 @@ const ResearchDesk = () => {
                   }}
                   role="cell"
                 >
-                  {statusLabel(row.status || 'NEW')}
+                  {statusLabel(row.status || 'NEW', t)}
                 </span>
                 <span
                   style={{ ...styles.panelMeta, textTransform: 'capitalize' }}
                   role="cell"
                 >
-                  {statusLabel(row.priority || 'NORMAL')}
+                  {statusLabel(row.priority || 'NORMAL', t)}
                 </span>
               </div>
             ))}
@@ -484,7 +513,7 @@ const ResearchDesk = () => {
                   onClick={() => void loadNextPage()}
                   disabled={state.loadingMore}
                 >
-                  {state.loadingMore ? 'Loading…' : 'Load next page'}
+                  {state.loadingMore ? t('Loading…') : t('Load next page')}
                 </button>
               )}
             </div>
@@ -492,9 +521,9 @@ const ResearchDesk = () => {
       </section>
 
       <p style={styles.footer}>
-        Evidence remains separate from generated copy. Drafts can be prepared by
-        tools, but only a workspace member can approve an outreach draft, and
-        this dashboard never sends one.
+        {t(
+          'Evidence remains separate from generated copy. Drafts can be prepared by tools, but only a workspace member can approve an outreach draft, and this dashboard never sends one.',
+        )}
       </p>
     </main>
   );
