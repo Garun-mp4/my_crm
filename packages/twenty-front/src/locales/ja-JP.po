@@ -3476,10 +3476,10 @@ msgstr "ボタン"
 msgid "by {author}"
 msgstr "提供: {author}"
 
-#. js-lingui-id: 8Pfllj
+#. js-lingui-id: 7GkKF7
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "Twentyを利用することにより、以下の事項に同意したものとみなされます。"
+msgid "By using GarunCRM, you agree to the"
+msgstr ""
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -14961,10 +14961,10 @@ msgstr "ページレイアウト"
 msgid "Page name"
 msgstr "ページ名"
 
-#. js-lingui-id: NRvxzv
+#. js-lingui-id: boJlGf
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "ページが見つかりません | Twenty"
+msgid "Page Not Found"
+msgstr ""
 
 #. js-lingui-id: oIhFvf
 #: src/modules/side-panel/pages/email-block-settings/components/EmailPageStyleSection.tsx
@@ -21990,10 +21990,10 @@ msgstr "週間"
 msgid "Weight"
 msgstr "重み"
 
-#. js-lingui-id: nTuObL
+#. js-lingui-id: hOxPgK
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "Twentyへようこそ"
+msgid "Welcome to GarunCRM"
+msgstr ""
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

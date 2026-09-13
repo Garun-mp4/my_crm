@@ -3476,10 +3476,10 @@ msgstr "按钮"
 msgid "by {author}"
 msgstr "由 {author} 提供"
 
-#. js-lingui-id: 8Pfllj
+#. js-lingui-id: 7GkKF7
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
-msgstr "使用 Twenty 即表示您同意"
+msgid "By using GarunCRM, you agree to the"
+msgstr ""
 
 #. js-lingui-id: Yx41df
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
@@ -14938,10 +14938,10 @@ msgstr "页面布局"
 msgid "Page name"
 msgstr "页面名称"
 
-#. js-lingui-id: NRvxzv
+#. js-lingui-id: boJlGf
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
-msgstr "页面未找到 | Twenty"
+msgid "Page Not Found"
+msgstr ""
 
 #. js-lingui-id: oIhFvf
 #: src/modules/side-panel/pages/email-block-settings/components/EmailPageStyleSection.tsx
@@ -21937,10 +21937,10 @@ msgstr ""
 msgid "Weight"
 msgstr "权重"
 
-#. js-lingui-id: nTuObL
+#. js-lingui-id: hOxPgK
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
-msgstr "欢迎来到 Twenty"
+msgid "Welcome to GarunCRM"
+msgstr ""
 
 #. js-lingui-id: t8ZvkC
 #: src/modules/onboarding/constants/WelcomeTitleMessage.ts

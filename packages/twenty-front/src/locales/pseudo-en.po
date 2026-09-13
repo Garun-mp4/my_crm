@@ -3471,9 +3471,9 @@ msgstr ""
 msgid "by {author}"
 msgstr ""
 
-#. js-lingui-id: 8Pfllj
+#. js-lingui-id: 7GkKF7
 #: src/modules/auth/sign-in-up/components/FooterNote.tsx
-msgid "By using Twenty, you agree to the"
+msgid "By using GarunCRM, you agree to the"
 msgstr ""
 
 #. js-lingui-id: Yx41df
@@ -14933,9 +14933,9 @@ msgstr ""
 msgid "Page name"
 msgstr ""
 
-#. js-lingui-id: NRvxzv
+#. js-lingui-id: boJlGf
 #: src/pages/not-found/NotFound.tsx
-msgid "Page Not Found | Twenty"
+msgid "Page Not Found"
 msgstr ""
 
 #. js-lingui-id: oIhFvf
@@ -21932,9 +21932,9 @@ msgstr ""
 msgid "Weight"
 msgstr ""
 
-#. js-lingui-id: nTuObL
+#. js-lingui-id: hOxPgK
 #: src/pages/auth/SignInUp.tsx
-msgid "Welcome to Twenty"
+msgid "Welcome to GarunCRM"
 msgstr ""
 
 #. js-lingui-id: t8ZvkC
