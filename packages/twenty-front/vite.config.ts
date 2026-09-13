@@ -172,9 +172,11 @@ export default defineConfig(({ mode }) => {
     },
 
     build: {
-      minify: 'esbuild',
+      // Oxc keeps production minification within the Codespace memory budget.
+      minify: 'oxc',
       outDir: 'build',
       sourcemap: VITE_BUILD_SOURCEMAP === 'true' ? 'hidden' : false,
+      reportCompressedSize: false,
       chunkSizeWarningLimit: CHUNK_SIZE_WARNING_LIMIT,
       rollupOptions: {
         //  Don't use manual chunks as it causes many issue

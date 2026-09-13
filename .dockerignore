@@ -13,6 +13,8 @@
 !packages/twenty-sdk/src/cli/utilities/build/**
 !packages/twenty-sdk/src/front-component-renderer/build
 !packages/twenty-sdk/src/front-component-renderer/build/**
+!packages/twenty-front/build
+!packages/twenty-front/build/**
 **/coverage
 **/test-results
 **/playwright-report

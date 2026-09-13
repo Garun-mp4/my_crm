@@ -1,7 +1,7 @@
 name: my-crm
 
 services:
-  postgres:
+  db:
     image: postgres:16
     environment:
       POSTGRES_DB: default
@@ -16,6 +16,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
   redis:
@@ -30,19 +36,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
+  # db-init and worker share the server image, so one build producer prevents
+  # Compose Bake from compiling the same 1.7 GB runtime three times.
   db-init:
     image: my-crm-server:latest
-    build:
-      context: .
-      dockerfile: packages/twenty-docker/twenty/Dockerfile
-      target: twenty-server
     env_file:
       - path: packages/twenty-server/.env
         required: true
     environment:
-      PG_DATABASE_URL: postgres://postgres:postgres@postgres:5432/default
+      PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
       REDIS_URL: redis://redis:6379
       NODE_PORT: "3000"
       SERVER_URL: http://localhost:3000
@@ -59,7 +69,7 @@ services:
         "sh /app/scripts/crm-db-init.sh && touch /tmp/crm-db-init-ready && exec tail -f /dev/null",
       ]
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -69,6 +79,12 @@ services:
       timeout: 5s
       retries: 30
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
   server:
@@ -81,7 +97,7 @@ services:
       - path: packages/twenty-server/.env
         required: true
     environment:
-      PG_DATABASE_URL: postgres://postgres:postgres@postgres:5432/default
+      PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
       REDIS_URL: redis://redis:6379
       NODE_PORT: "3000"
       SERVER_URL: http://localhost:3000
@@ -103,19 +119,21 @@ services:
       timeout: 5s
       retries: 30
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
   worker:
     image: my-crm-server:latest
-    build:
-      context: .
-      dockerfile: packages/twenty-docker/twenty/Dockerfile
-      target: twenty-server
     env_file:
       - path: packages/twenty-server/.env
         required: true
     environment:
-      PG_DATABASE_URL: postgres://postgres:postgres@postgres:5432/default
+      PG_DATABASE_URL: postgres://postgres:postgres@db:5432/default
       REDIS_URL: redis://redis:6379
       NODE_PORT: "3000"
       SERVER_URL: http://localhost:3000
@@ -130,6 +148,12 @@ services:
     depends_on:
       server:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
   my-crm-sync:
@@ -165,6 +189,12 @@ services:
       timeout: 5s
       retries: 30
       start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
   front:
@@ -189,13 +219,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    stop_grace_period: 30s
     restart: unless-stopped
 
 volumes:
-  # This is the existing local development database volume. Keeping its name
-  # preserves the current workspace and makes the migration non-destructive.
+  # An explicit name preserves an existing workspace volume while still making
+  # a clean checkout able to create it automatically.
   db-data:
-    external: true
     name: twenty-dev_dev-db-data
   redis-data:
     name: my-crm_redis-data

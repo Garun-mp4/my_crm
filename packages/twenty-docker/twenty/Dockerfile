@@ -65,7 +65,7 @@ RUN find /app/packages/twenty-server/dist -name '*.d.ts' -delete \
 RUN yarn workspaces focus --production twenty-emails twenty-shared twenty-client-sdk twenty-server
 
 
-FROM front-deps AS twenty-front-build
+FROM front-deps AS twenty-front-source
 
 ARG FRONTEND_SERVER_URL=http://localhost:3000
 
@@ -76,15 +76,26 @@ COPY ./packages/twenty-shared /app/packages/twenty-shared
 COPY ./packages/twenty-sdk /app/packages/twenty-sdk
 COPY ./packages/twenty-client-sdk /app/packages/twenty-client-sdk
 RUN printf 'REACT_APP_SERVER_BASE_URL=%s\nVITE_BUILD_SOURCEMAP=false\n' "$FRONTEND_SERVER_URL" > /app/packages/twenty-front/.env.production
-RUN npx nx run twenty-front:lingui:extract && \
-    npx nx run twenty-front:lingui:compile
+# The Nx Lingui targets depend on every upstream build, which would run the
+# production frontend while preparing the catalogs and duplicate the next step.
+RUN npx nx run twenty-shared:build --skip-nx-cache && \
+    cd /app/packages/twenty-front && \
+    npx lingui extract --overwrite --clean && \
+    npx lingui compile --typescript
+
+
+FROM twenty-front-source AS twenty-front-build
+
+ARG USE_PREBUILT_FRONTEND=true
+
 # To skip the memory-intensive frontend build, pre-build on the host:
 #   npx nx build twenty-front
 # The check below will use packages/twenty-front/build/ if it already exists.
-RUN if [ -d /app/packages/twenty-front/build ]; then \
+RUN if [ "$USE_PREBUILT_FRONTEND" = "true" ] && [ -d /app/packages/twenty-front/build ]; then \
       echo "Using pre-built frontend from host"; \
     else \
-      NODE_OPTIONS="--max-old-space-size=2048" npx nx build twenty-front; \
+      cd /app/packages/twenty-front && \
+      NODE_ENV=production NODE_OPTIONS="--max-old-space-size=768 --max-semi-space-size=8" /app/node_modules/.bin/vite build; \
     fi
 # The browser cannot resolve Docker-internal service names. Bake the public
 # backend URL into the static frontend runtime config so the app does not
@@ -106,6 +117,12 @@ COPY ./packages/twenty-client-sdk /app/packages/twenty-client-sdk
 COPY ./packages/twenty-sdk /app/packages/twenty-sdk
 
 RUN npx nx build twenty-sdk --skip-nx-cache
+
+# The CLI is built with the complete workspace, but the sync container only
+# executes the published SDK artifacts and their runtime dependencies.
+RUN npx nx reset \
+ && yarn workspaces focus --production twenty twenty-sdk twenty-ui twenty-shared twenty-client-sdk \
+ && yarn cache clean
 
 
 # ===========================================================================

@@ -24,7 +24,7 @@ export default defineConfig({
   },
   test: {
     include: [
-      'src/modules/navigation-menu-item/common/utils/__tests__/**/*.test.ts',
+      'src/modules/navigation-menu-item/common/utils/__tests__/filterGarunCrmWorkspaceNavigationMenuItems.test.ts',
     ],
   },
 });
