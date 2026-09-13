@@ -14,6 +14,9 @@ export const canonicalizeText = (value: string | null | undefined): string =>
 const isTrackingQueryParameter = (key: string): boolean =>
   /^(utm_[a-z0-9_]+|gclid|fbclid|yclid|_openstat)$/i.test(key);
 
+const normalizePercentEscapeCase = (value: string): string =>
+  value.replace(/%[0-9a-f]{2}/gi, (escape) => escape.toUpperCase());
+
 const canonicalizeUrlInternal = (
   value: string | null | undefined,
   options: { preserveQuery?: boolean } = {},
@@ -40,12 +43,16 @@ const canonicalizeUrlInternal = (
         ).toString()
       : '';
 
-    return `${url.hostname}${pathname}${query ? `?${query}` : ''}`;
+    return normalizePercentEscapeCase(
+      `${url.hostname}${pathname}${query ? `?${query}` : ''}`,
+    );
   } catch {
-    return normalized
-      .replace(/^https?:\/\//, '')
-      .replace(/^www\./, '')
-      .replace(/\/$/, '');
+    return normalizePercentEscapeCase(
+      normalized
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .replace(/\/$/, ''),
+    );
   }
 };
 

@@ -1,8 +1,16 @@
 name: my-crm
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "25m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16
+    logging: *default-logging
+    stop_grace_period: 30s
     environment:
       POSTGRES_DB: default
       POSTGRES_PASSWORD: postgres
@@ -20,6 +28,8 @@ services:
 
   redis:
     image: redis:7
+    logging: *default-logging
+    stop_grace_period: 30s
     command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
     volumes:
       - redis-data:/data
@@ -34,6 +44,8 @@ services:
 
   db-init:
     image: my-crm-server:latest
+    logging: *default-logging
+    stop_grace_period: 30s
     build:
       context: .
       dockerfile: packages/twenty-docker/twenty/Dockerfile
@@ -73,6 +85,8 @@ services:
 
   server:
     image: my-crm-server:latest
+    logging: *default-logging
+    stop_grace_period: 30s
     build:
       context: .
       dockerfile: packages/twenty-docker/twenty/Dockerfile
@@ -107,6 +121,8 @@ services:
 
   worker:
     image: my-crm-server:latest
+    logging: *default-logging
+    stop_grace_period: 30s
     build:
       context: .
       dockerfile: packages/twenty-docker/twenty/Dockerfile
@@ -124,7 +140,7 @@ services:
       DISABLE_DB_MIGRATIONS: "true"
       DISABLE_CRON_JOBS_REGISTRATION: "true"
       APPLICATION_LOG_DRIVER: CONSOLE
-    command: ["yarn", "worker:prod"]
+    command: ["node", "dist/queue-worker/queue-worker"]
     volumes:
       - ./packages/twenty-server/.local-storage:/app/packages/twenty-server/.local-storage
     depends_on:
@@ -134,6 +150,8 @@ services:
 
   my-crm-sync:
     image: my-crm-sync:latest
+    logging: *default-logging
+    stop_grace_period: 30s
     build:
       context: .
       dockerfile: packages/twenty-docker/twenty/Dockerfile
@@ -169,6 +187,8 @@ services:
 
   front:
     image: my-crm-front:latest
+    logging: *default-logging
+    stop_grace_period: 30s
     build:
       context: .
       dockerfile: packages/twenty-docker/twenty/Dockerfile

@@ -19,6 +19,16 @@ describe('lead deduplication', () => {
     ).toBe('website:example.ru');
   });
 
+  it('normalizes percent-escape casing across equivalent URL inputs', () => {
+    const encoded = 'https://example.com/%d0%bc%d0%b0%d0%b3%d0%b0%d0%b7%d0%b8%d0%bd';
+    const unicode = 'https://example.com/магазин';
+
+    expect(canonicalizeUrl(encoded)).toBe(canonicalizeUrl(unicode));
+    expect(canonicalizeUrl(encoded)).toBe(
+      'example.com/%D0%BC%D0%B0%D0%B3%D0%B0%D0%B7%D0%B8%D0%BD',
+    );
+  });
+
   it('falls back to company and city when there is no URL', () => {
     expect(
       buildLeadDedupeKey({ name: '  Мастеровой  ', city: ' Екатеринбург ' }),

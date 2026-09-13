@@ -1,5 +1,7 @@
 # Performance and operations
 
+The measured optimization baseline, change register, and after-results are maintained in [docs/performance/BASELINE.md](performance/BASELINE.md), [docs/performance/OPTIMIZATIONS.md](performance/OPTIMIZATIONS.md), and [docs/performance/RESULTS.md](performance/RESULTS.md).
+
 ## Large lists
 
 The primary Lead object view remains Twenty's server-backed table. The custom research desk deliberately requests 25 rows at a time and appends the next cursor page without replacing the list, so the user's position does not jump. Search, filtering, sorting, and saved views belong to the object-view query path rather than a client-side copy of the entire table.

@@ -19,14 +19,14 @@ type LeadPage = {
 };
 
 type LeadSummary = {
-  total: number;
-  researching: number;
-  ready: number;
-  needsAttention: number;
+  total: number | null;
+  researching: number | null;
+  ready: number | null;
+  needsAttention: number | null;
 };
 
 type LoadingState =
-  | { kind: 'loading' }
+  | { kind: 'loading'; summary: LeadSummary }
   | {
       kind: 'ready';
       rows: LeadRow[];
@@ -36,6 +36,13 @@ type LoadingState =
       loadMoreError?: string;
     }
   | { kind: 'error'; message: string };
+
+const EMPTY_SUMMARY: LeadSummary = {
+  total: null,
+  researching: null,
+  ready: null,
+  needsAttention: null,
+};
 
 const colors = {
   canvas: '#f5f5f5',
@@ -54,146 +61,150 @@ const font = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 const displayFont = 'Georgia, "Times New Roman", serif';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const readString = (value: unknown, key: string): string => {
-  if (!isRecord(value)) return '';
+  if (!isRecord(value) || !Object.hasOwn(value, key)) {
+    throw new Error('Lead list response is invalid.');
+  }
+
   const result = value[key];
-  return typeof result === 'string' ? result : '';
+  if (result === null) return '';
+  if (typeof result !== 'string') {
+    throw new Error('Lead list response is invalid.');
+  }
+
+  return result;
 };
 
-const loadLeads = async (after?: string): Promise<LeadPage> => {
-  const response: unknown = await new CoreApiClient().query({
+const loadLeads = async (
+  client: CoreApiClient,
+  after?: string,
+): Promise<LeadPage> => {
+  const response: unknown = await client.query({
     leads: {
-      __args: { first: 25, ...(after ? { after } : {}) },
+      __args: {
+        first: 25,
+        orderBy: [{ createdAt: 'DescNullsLast' }],
+        ...(after ? { after } : {}),
+      },
       edges: { node: { id: true, name: true, status: true, priority: true } },
       pageInfo: { hasNextPage: true, endCursor: true },
     },
   });
   if (!isRecord(response) || !isRecord(response.leads)) {
-    return { rows: [], nextCursor: null };
+    throw new Error('Lead list response is invalid.');
   }
   const edges = response.leads.edges;
-  if (!Array.isArray(edges)) return { rows: [], nextCursor: null };
+  if (!Array.isArray(edges)) throw new Error('Lead list response is invalid.');
 
-  const rows = edges.flatMap((edge) => {
-    if (!isRecord(edge) || !isRecord(edge.node)) return [];
+  const rows = edges.map((edge) => {
+    if (!isRecord(edge) || !isRecord(edge.node)) {
+      throw new Error('Lead list response is invalid.');
+    }
+
     const id = readString(edge.node, 'id');
     const name = readString(edge.node, 'name');
-    if (!id || !name) return [];
-    return [
-      {
-        id,
-        name,
-        status: readString(edge.node, 'status'),
-        priority: readString(edge.node, 'priority'),
-      },
-    ];
+    if (!id || !name) throw new Error('Lead list response is invalid.');
+
+    return {
+      id,
+      name,
+      status: readString(edge.node, 'status'),
+      priority: readString(edge.node, 'priority'),
+    };
   });
 
-  const pageInfo = isRecord(response.leads.pageInfo)
-    ? response.leads.pageInfo
-    : null;
-  const hasNextPage =
-    pageInfo && typeof pageInfo.hasNextPage === 'boolean'
-      ? pageInfo.hasNextPage
-      : false;
-  const nextCursor =
-    hasNextPage && typeof pageInfo?.endCursor === 'string'
-      ? pageInfo.endCursor
-      : null;
+  const pageInfo = response.leads.pageInfo;
+  if (!isRecord(pageInfo)) {
+    throw new Error('Lead list response is invalid.');
+  }
 
-  return { rows, nextCursor };
+  const hasNextPage = pageInfo.hasNextPage;
+  const endCursor = pageInfo.endCursor;
+  if (
+    typeof hasNextPage !== 'boolean' ||
+    (typeof endCursor !== 'string' && endCursor !== null)
+  ) {
+    throw new Error('Lead list response is invalid.');
+  }
+
+  if (hasNextPage && (!endCursor || endCursor === after)) {
+    throw new Error('Lead list response is invalid.');
+  }
+
+  return { rows, nextCursor: hasNextPage ? endCursor : null };
 };
 
 const countLeads = async (
+  client: CoreApiClient,
   filter?: Record<string, unknown>,
 ): Promise<number> => {
-  let after: string | undefined;
-  let total = 0;
+  const response: unknown = await client.query({
+    leads: {
+      __args: { first: 1, ...(filter ? { filter } : {}) },
+      totalCount: true,
+    },
+  });
 
-  for (let page = 0; page < 100; page += 1) {
-    const response: unknown = await new CoreApiClient().query({
-      leads: {
-        __args: {
-          first: 200,
-          ...(after ? { after } : {}),
-          ...(filter ? { filter } : {}),
-        },
-        edges: { node: { id: true } },
-        pageInfo: { hasNextPage: true, endCursor: true },
-      },
-    });
-
-    if (!isRecord(response) || !isRecord(response.leads)) {
-      throw new Error('Lead count response is invalid.');
-    }
-
-    const edges = response.leads.edges;
-    if (!Array.isArray(edges)) {
-      throw new Error('Lead count edges were not returned by the server.');
-    }
-
-    total += edges.filter(
-      (edge) =>
-        isRecord(edge) &&
-        isRecord(edge.node) &&
-        typeof edge.node.id === 'string',
-    ).length;
-
-    const pageInfo = isRecord(response.leads.pageInfo)
-      ? response.leads.pageInfo
-      : undefined;
-    const hasNextPage = pageInfo?.hasNextPage === true;
-    const nextCursor =
-      typeof pageInfo?.endCursor === 'string' ? pageInfo.endCursor : undefined;
-
-    if (!hasNextPage || !nextCursor) return total;
-    if (nextCursor === after) {
-      throw new Error('Lead count pagination did not advance.');
-    }
-
-    after = nextCursor;
+  if (!isRecord(response) || !isRecord(response.leads)) {
+    throw new Error('Lead count response is invalid.');
   }
 
-  throw new Error('Lead count pagination exceeded the safety limit.');
+  const totalCount = response.leads.totalCount;
+  if (
+    typeof totalCount !== 'number' ||
+    !Number.isInteger(totalCount) ||
+    totalCount < 0
+  ) {
+    throw new Error('Lead count response is invalid.');
+  }
+
+  return totalCount;
 };
 
-const loadSummary = async (): Promise<LeadSummary> => {
-  const [total, researching, ready, needsAttention] = await Promise.all([
-    countLeads(),
-    countLeads({ status: { eq: 'RESEARCHING' } }),
-    countLeads({ status: { eq: 'DRAFT_READY' } }),
-    countLeads({ priority: { in: ['HIGH', 'URGENT'] } }),
+const loadSummary = async (client: CoreApiClient): Promise<LeadSummary> => {
+  const results = await Promise.allSettled([
+    countLeads(client),
+    countLeads(client, { status: { eq: 'RESEARCHING' } }),
+    countLeads(client, { status: { eq: 'DRAFT_READY' } }),
+    countLeads(client, { priority: { in: ['HIGH', 'URGENT'] } }),
   ]);
 
-  return { total, researching, ready, needsAttention };
-};
+  const readCount = (result: PromiseSettledResult<number>): number | null =>
+    result.status === 'fulfilled' ? result.value : null;
 
-const statusLabel = (
-  status: string,
-  t: (message: string) => string,
-): string => {
-  const labels: Record<string, string> = {
-    NEW: t('New'),
-    RESEARCHING: t('Researching'),
-    RESEARCHED: t('Researched'),
-    QUALIFIED: t('Qualified'),
-    DRAFT_READY: t('Draft ready'),
-    CONTACTED: t('Contacted'),
-    REPLIED: t('Replied'),
-    MEETING: t('Meeting'),
-    WON: t('Won'),
-    LOST: t('Lost'),
-    DUPLICATE: t('Duplicate'),
-    DO_NOT_CONTACT: t('Do not contact'),
-    NORMAL: t('Normal'),
-    HIGH: t('High'),
-    URGENT: t('Urgent'),
+  return {
+    total: readCount(results[0]),
+    researching: readCount(results[1]),
+    ready: readCount(results[2]),
+    needsAttention: readCount(results[3]),
   };
-
-  return labels[status] ?? status.toLocaleLowerCase('en-US').replaceAll('_', ' ');
 };
+
+const STATUS_LABELS: Record<string, string> = {
+  NEW: 'New',
+  RESEARCHING: 'Researching',
+  RESEARCHED: 'Researched',
+  QUALIFIED: 'Qualified',
+  DRAFT_READY: 'Draft ready',
+  CONTACTED: 'Contacted',
+  REPLIED: 'Replied',
+  MEETING: 'Meeting',
+  WON: 'Won',
+  LOST: 'Lost',
+  DUPLICATE: 'Duplicate',
+  DO_NOT_CONTACT: 'Do not contact',
+  NORMAL: 'Normal',
+  HIGH: 'High',
+  URGENT: 'Urgent',
+};
+
+const statusLabel = (status: string, t: (message: string) => string): string =>
+  t(
+    STATUS_LABELS[status] ??
+      status.toLocaleLowerCase('en-US').replaceAll('_', ' '),
+  );
 
 const statusColor = (status: string): string => {
   if (
@@ -349,35 +360,49 @@ const styles: Record<string, CSSProperties> = {
 
 const ResearchDesk = () => {
   const { t } = useTranslate();
-  const [state, setState] = useState<LoadingState>({ kind: 'loading' });
+  const [client] = useState(() => new CoreApiClient());
+  const [state, setState] = useState<LoadingState>({
+    kind: 'loading',
+    summary: EMPTY_SUMMARY,
+  });
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([loadLeads(), loadSummary()])
-      .then(([page, summary]) => {
+    void loadLeads(client)
+      .then((page) => {
         if (!cancelled)
-          setState({
+          setState((current) => ({
             kind: 'ready',
             rows: page.rows,
             nextCursor: page.nextCursor,
             loadingMore: false,
-            summary,
-          });
+            summary:
+              current.kind === 'loading' ? current.summary : EMPTY_SUMMARY,
+          }));
       })
       .catch(() => {
         if (!cancelled)
           setState({
             kind: 'error',
-            message: t(
-              'Unable to load leads. Check access to the current workspace.',
-            ),
+            message: 'Unable to load leads. Check access to the current workspace.',
           });
       });
+
+    void loadSummary(client).then((summary) => {
+      if (!cancelled)
+        setState((current) => {
+          if (current.kind === 'loading' || current.kind === 'ready') {
+            return { ...current, summary };
+          }
+
+          return current;
+        });
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [client]);
 
   const loadNextPage = async () => {
     if (state.kind !== 'ready' || !state.nextCursor || state.loadingMore)
@@ -385,7 +410,7 @@ const ResearchDesk = () => {
 
     setState({ ...state, loadingMore: true, loadMoreError: undefined });
     try {
-      const page = await loadLeads(state.nextCursor);
+      const page = await loadLeads(client, state.nextCursor);
       setState((current) =>
         current.kind === 'ready'
           ? {
@@ -410,9 +435,9 @@ const ResearchDesk = () => {
   };
 
   const summary: LeadSummary =
-    state.kind === 'ready'
+    state.kind === 'loading' || state.kind === 'ready'
       ? state.summary
-      : { total: 0, researching: 0, ready: 0, needsAttention: 0 };
+      : EMPTY_SUMMARY;
 
   return (
     <main style={styles.root} aria-labelledby="research-desk-title">
@@ -430,10 +455,10 @@ const ResearchDesk = () => {
 
       <section style={styles.grid} aria-label={t('Lead summary')}>
         {[
-          [t('All leads'), summary.total, colors.surface],
-          [t('In research'), summary.researching, colors.lavender],
-          [t('Draft ready'), summary.ready, colors.mint],
-          [t('Needs attention'), summary.needsAttention, colors.peach],
+          [t('All leads'), summary.total ?? '—', colors.surface],
+          [t('In research'), summary.researching ?? '—', colors.lavender],
+          [t('Draft ready'), summary.ready ?? '—', colors.mint],
+          [t('Needs attention'), summary.needsAttention ?? '—', colors.peach],
         ].map(([label, value, background]) => (
           <article
             key={String(label)}
